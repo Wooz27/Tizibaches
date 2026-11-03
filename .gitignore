@@ -42,6 +42,7 @@ app/config/app_config.json
 app/android/key.properties
 app/android/*.jks
 app/android/*.keystore
+app/android/*.local.txt
 .taste-skill/
 *.log
 *.pem

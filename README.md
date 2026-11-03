@@ -137,6 +137,7 @@ Coordinates are stored as WGS84 points (`SRID 4326`) with the PostGIS `geography
 - [Google sign-in setup](docs/google-auth.md)
 - [AI photo moderation](docs/ai-moderation.md)
 - [Deployment](docs/deployment.md)
+- [Play Store and testers](docs/play-store.md)
 - [Web frontend](web/README.md)
 - [Android app](app/README.md)
 
