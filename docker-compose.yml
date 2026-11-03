@@ -1,7 +1,8 @@
 services:
   db:
     image: postgis/postgis:18-3.6
-    container_name: baches-db
+    # Sin container_name fijo: Dokploy lo une a la red del proyecto y el
+    # backend puede resolver el servicio como "db".
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-baches}
