@@ -49,3 +49,6 @@ app/android/*.local.txt
 
 # Artefactos locales para Play Store
 reales/
+
+# Capturas locales para Play Store
+videos/
