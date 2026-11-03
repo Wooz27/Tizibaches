@@ -21,7 +21,7 @@ DJANGO_SECRET_KEY=<secreto-de-al-menos-64-caracteres>
 DJANGO_DEBUG=0
 
 DOMAIN=tizibaches.example
-HOST_PORT=80
+HOST_PORT=8080
 DJANGO_ALLOWED_HOSTS=tizibaches.example
 CSRF_TRUSTED_ORIGINS=https://tizibaches.example
 CORS_ALLOWED_ORIGINS=https://tizibaches.example

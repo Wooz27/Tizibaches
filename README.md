@@ -22,10 +22,10 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-- Web: `http://localhost/` (o `http://localhost:<HOST_PORT>/` si cambiaste el puerto)
-- Map: `http://localhost/mapa`
-- Admin: `http://localhost/admin/`
-- API health: `http://localhost/api/health/`
+- Web: `http://localhost:8080/`
+- Map: `http://localhost:8080/mapa`
+- Admin: `http://localhost:8080/admin/`
+- API health: `http://localhost:8080/api/health/`
 
 The Flutter app is **not** a compose service. It is an Android client compiled
 and installed separately:
@@ -137,6 +137,7 @@ Coordinates are stored as WGS84 points (`SRID 4326`) with the PostGIS `geography
 - [Google sign-in setup](docs/google-auth.md)
 - [AI photo moderation](docs/ai-moderation.md)
 - [Deployment](docs/deployment.md)
+- [Cloudflare Tunnel](docs/cloudflare-tunnel.md)
 - [Play Store and testers](docs/play-store.md)
 - [Web frontend](web/README.md)
 - [Android app](app/README.md)

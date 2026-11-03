@@ -114,7 +114,8 @@ services:
     image: nginx:1.27-alpine
     restart: unless-stopped
     ports:
-      - "${HOST_PORT:-80}:80"
+      # cloudflared corre en el host y entra por loopback.
+      - "127.0.0.1:${HOST_PORT:-8080}:80"
     volumes:
       - ./infra/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - media:/srv/media:ro
