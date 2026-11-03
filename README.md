@@ -18,14 +18,14 @@ The server stack is Postgres + Django + Astro + nginx:
 
 ```bash
 cp .env.example .env
-# Edit .env: POSTGRES_PASSWORD, DJANGO_SECRET_KEY, Google IDs and public URL
+# Edita .env: DOMAIN, HOST_PORT, POSTGRES_PASSWORD, DJANGO_SECRET_KEY y Google IDs
 docker compose up -d --build
 ```
 
-- Web: `http://localhost:8080/`
-- Map: `http://localhost:8080/mapa`
-- Admin: `http://localhost:8080/admin/`
-- API health: `http://localhost:8080/api/health/`
+- Web: `http://localhost/` (o `http://localhost:<HOST_PORT>/` si cambiaste el puerto)
+- Map: `http://localhost/mapa`
+- Admin: `http://localhost/admin/`
+- API health: `http://localhost/api/health/`
 
 The Flutter app is **not** a compose service. It is an Android client compiled
 and installed separately:

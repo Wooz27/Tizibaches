@@ -20,13 +20,14 @@ POSTGRES_PASSWORD=<password-larga-aleatoria>
 DJANGO_SECRET_KEY=<secreto-de-al-menos-64-caracteres>
 DJANGO_DEBUG=0
 
+DOMAIN=tizibaches.example
+HOST_PORT=80
 DJANGO_ALLOWED_HOSTS=tizibaches.example
 CSRF_TRUSTED_ORIGINS=https://tizibaches.example
 CORS_ALLOWED_ORIGINS=https://tizibaches.example
 WEB_URL=https://tizibaches.example
 PUBLIC_API_URL=https://tizibaches.example
 PUBLIC_APP_URL=https://tizibaches.example/app
-APP_PORT=8080
 
 DJANGO_TRUST_PROXY=1
 DJANGO_SECURE_SSL_REDIRECT=1
@@ -68,7 +69,9 @@ docker compose exec backend python manage.py createsuperuser
 ```
 
 El `entrypoint.sh` del backend ejecuta `migrate` y `collectstatic` antes de
-arrancar Gunicorn. El proxy publica la web y la API en `APP_PORT`.
+arrancar Gunicorn. El proxy publica la web y la API en `${HOST_PORT}:80`;
+`HOST_PORT` es el puerto elegido en el host y nginx escucha siempre en el 80
+interno.
 
 Para habilitar la moderación con IA:
 
@@ -82,9 +85,10 @@ El worker se puede detener en cualquier momento; los reportes nuevos quedan en
 ## TLS y dominio
 
 El `infra/nginx.conf` incluido escucha HTTP en el puerto 80. Para producción,
-termina TLS en un proxy exterior y reenvía a `127.0.0.1:8080`, o agrega un
-bloque `listen 443 ssl` con los certificados correspondientes. Mantén
-`X-Forwarded-Proto: https` para que Django reconozca HTTPS.
+termina TLS en un proxy exterior y reenvía a `127.0.0.1:${HOST_PORT}`, o agrega
+un bloque `listen 443 ssl` con los certificados correspondientes. Mantén
+`X-Forwarded-Proto: https` para que Django reconozca HTTPS. Si el TLS termina
+en otro proxy, reenvía a `127.0.0.1:${HOST_PORT}`.
 
 No abras públicamente los puertos de Postgres, Django ni Astro. Solo debe quedar
 expuesto el proxy (o el balanceador TLS).

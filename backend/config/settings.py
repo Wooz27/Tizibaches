@@ -22,10 +22,14 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", default=None)
 if not SECRET_KEY:
     raise ImproperlyConfigured("DJANGO_SECRET_KEY es obligatorio.")
 
+DOMAIN = env("DOMAIN", default="localhost").strip() or "localhost"
+
 ALLOWED_HOSTS = env.list(
     "DJANGO_ALLOWED_HOSTS",
-    default=["localhost", "127.0.0.1", "testserver"] if DEBUG else [],
+    default=["localhost", "127.0.0.1", "testserver"] if DEBUG else [DOMAIN],
 )
+if DOMAIN not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(DOMAIN)
 
 INSTALLED_APPS = [
     "jazzmin",
@@ -122,13 +126,26 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024
 
-CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=["http://localhost:4321"])
+DEFAULT_ORIGIN = (
+    "http://localhost:4321" if DEBUG else f"https://{DOMAIN}"
+)
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[DEFAULT_ORIGIN],
+)
+if DOMAIN not in {"localhost", "127.0.0.1"}:
+    for origin in (f"https://{DOMAIN}", f"http://{DOMAIN}"):
+        if origin not in CORS_ALLOWED_ORIGINS:
+            CORS_ALLOWED_ORIGINS.append(origin)
 CORS_EXPOSE_HEADERS = ["ETag", "Last-Modified"]
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
     default=CORS_ALLOWED_ORIGINS,
 )
-WEB_URL = env("WEB_URL", default="http://localhost:4321").rstrip("/")
+WEB_URL = env(
+    "WEB_URL",
+    default="http://localhost:4321" if DEBUG else f"https://{DOMAIN}",
+).rstrip("/")
 
 # Producción: las flags se activan por defecto fuera de DEBUG.
 SECURE_PROXY_SSL_HEADER = (
