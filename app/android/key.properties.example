@@ -1,0 +1,6 @@
+# Copia este archivo a app/android/key.properties y completa con tu keystore.
+# No lo subas al repositorio.
+storeFile=/ruta/absoluta/a/tizibaches-release.jks
+storePassword=replace-with-store-password
+keyAlias=tizibaches
+keyPassword=replace-with-key-password

@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- La API local corre por HTTP en 10.0.2.2 durante el desarrollo. -->
+    <application android:usesCleartextTraffic="true"/>
+</manifest>

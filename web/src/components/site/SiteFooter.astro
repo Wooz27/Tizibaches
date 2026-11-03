@@ -1,0 +1,90 @@
+---
+import { publicApiUrl } from "@/lib/api";
+
+const appUrl = import.meta.env.PUBLIC_APP_URL || "/app";
+const year = new Date().getFullYear();
+
+const exploreLinks = [
+  { href: "/mapa", label: "Mapa abierto" },
+  { href: "/#que-es", label: "Qué es" },
+  { href: "/#como-funciona", label: "Cómo funciona" },
+  { href: appUrl, label: "La app ciudadana" },
+];
+
+const dataLinks = [
+  { href: `${publicApiUrl}/api/docs/`, label: "Documentación de la API" },
+  { href: `${publicApiUrl}/api/potholes/geojson/`, label: "GeoJSON de baches" },
+  { href: `${publicApiUrl}/api/health/`, label: "Estado de la API" },
+];
+---
+
+<footer class="mt-16 border-t border-paper/12 bg-ink text-paper">
+  <div class="mx-auto max-w-[1440px] px-4 py-10 sm:px-6 lg:px-8">
+    <div class="grid gap-10 lg:grid-cols-[1.3fr_0.55fr_0.8fr]">
+      <div>
+        <a href="/" class="inline-flex items-center gap-3" aria-label="Tízibaches, inicio">
+          <img
+            src="/brand/logo-mark.webp"
+            width="48"
+            height="48"
+            alt=""
+            class="size-12 object-contain"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="font-heading text-2xl tracking-[-0.04em]">Tízibaches</span>
+        </a>
+        <p class="mt-4 max-w-[34ch] text-sm leading-6 text-paper/55">
+          Un registro público de los baches de Tizimín. Reportes ciudadanos, seguimiento del expediente y
+          datos abiertos.
+        </p>
+        <p class="mt-4 text-[11px] text-paper/35">Tizimín, Yucatán · 21.1430° N, 88.1519° O</p>
+      </div>
+
+      <div>
+        <p class="text-xs font-medium text-paper/40">Explorar</p>
+        <ul class="mt-3 space-y-2.5">
+          {
+            exploreLinks.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  class="text-sm text-paper/65 underline decoration-transparent underline-offset-4 transition-colors hover:text-paper hover:decoration-maize"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div>
+        <p class="text-xs font-medium text-paper/40">Datos</p>
+        <ul class="mt-3 space-y-2.5">
+          {
+            dataLinks.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  class="text-sm text-paper/65 underline decoration-transparent underline-offset-4 transition-colors hover:text-paper hover:decoration-maize"
+                >
+                  {link.label} <span aria-hidden="true">↗</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="mt-8 flex flex-col gap-2 border-t border-paper/12 pt-4 text-[11px] text-paper/35 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p>© {year} Tízibaches. Desarrollado por Reynaldo Manzanilla.</p>
+      <p>Mapa: OpenFreeMap y OpenStreetMap.</p>
+    </div>
+  </div>
+</footer>

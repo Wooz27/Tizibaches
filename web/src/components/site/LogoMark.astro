@@ -1,0 +1,17 @@
+---
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+<img
+  src="/brand/logo-mark.webp"
+  width="64"
+  height="64"
+  alt=""
+  class={`object-cover ${className}`}
+  loading="eager"
+  decoding="async"
+/>

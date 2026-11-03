@@ -1,0 +1,72 @@
+---
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import AndroidPhone from "./AndroidPhone.astro";
+
+const appUrl = import.meta.env.PUBLIC_APP_URL || "/app";
+---
+
+<section id="app" class="bg-label text-ink">
+  <div class="mx-auto max-w-[1440px] px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+    <div class="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-20">
+      <div>
+        <h2
+          class="max-w-[12ch] font-heading text-[clamp(2.8rem,6vw,6.2rem)] font-semibold leading-[0.9] tracking-[-0.055em]"
+        >
+          La app para Android.
+        </h2>
+        <p class="mt-6 max-w-[46ch] text-[16px] leading-7 text-ink-soft">
+          Estamos preparando la app ciudadana solo para Android. Va a permitir entrar con Google,
+          tomar la foto en la calle y enviar la ubicación exacta del bache.
+        </p>
+
+        <ul class="mt-8 max-w-[46ch] space-y-4">
+          <li class="text-[15px] leading-6 text-ink-soft">
+            <strong class="font-semibold text-ink">Acceso con Google.</strong> Sin formularios largos
+            ni contraseñas nuevas.
+          </li>
+          <li class="text-[15px] leading-6 text-ink-soft">
+            <strong class="font-semibold text-ink">Cámara y GPS.</strong> La foto y la ubicación se
+            envían en el mismo paso.
+          </li>
+          <li class="text-[15px] leading-6 text-ink-soft">
+            <strong class="font-semibold text-ink">Seguimiento.</strong> Consultá cuándo se verifica,
+            se programa y se repara.
+          </li>
+        </ul>
+
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <a
+            href={appUrl}
+            class={cn(
+              buttonVariants({ size: "lg" }),
+              "h-12 rounded-none bg-maize px-5 text-ink hover:bg-ink hover:text-label",
+            )}
+          >
+            Conocer la app
+            <span aria-hidden="true" class="ml-1">↗</span>
+          </a>
+          <a
+            href="/mapa"
+            class="text-[14px] font-medium text-ink underline decoration-ink/30 underline-offset-4 transition-colors hover:decoration-ink"
+          >
+            Ver el mapa
+          </a>
+        </div>
+
+        <div class="mt-8 flex w-fit items-center gap-3 bg-paper-deep px-4 py-3">
+          <svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
+            <path d="M5 4.5v15l10-7.5L5 4.5Z" fill="currentColor" />
+            <path d="m15 12 4-3v6l-4-3Z" fill="currentColor" opacity="0.55" />
+          </svg>
+          <div>
+            <p class="text-[13px] font-medium leading-4">Google Play</p>
+            <p class="text-[12px] leading-4 text-ink-soft">Próximamente</p>
+          </div>
+        </div>
+      </div>
+
+      <AndroidPhone class="max-w-[20rem]" />
+    </div>
+  </div>
+</section>

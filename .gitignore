@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+docker-compose.override.yml
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Django
+backend/media/
+backend/staticfiles/
+*.sqlite3
+
+# Node / Astro
+node_modules/
+dist/
+.astro/
+
+# Flutter
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Command Code local state
+.commandcode/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
+
+# Configuración pública generada para Flutter
+app/config/app_config.json
+
+# Android release signing
+app/android/key.properties
+app/android/*.jks
+app/android/*.keystore
+.taste-skill/
+*.log
+*.pem

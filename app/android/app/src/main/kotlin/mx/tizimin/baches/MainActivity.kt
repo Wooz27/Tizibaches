@@ -1,0 +1,5 @@
+package mx.tizimin.baches
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()

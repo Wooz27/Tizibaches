@@ -1,0 +1,89 @@
+---
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+const scatter = Array.from({ length: 44 }, (_, index) => ({
+  x: 46 + ((index * 71) % 300),
+  y: 32 + ((index * 47) % 196),
+  r: 3 + (index % 3),
+}));
+
+const ribbon = Array.from({ length: 30 }, (_, index) => ({
+  x: 430 + (index % 10) * 30,
+  y: 92 + Math.floor(index / 10) * 30,
+  r: 5,
+}));
+
+const rows = Array.from({ length: 36 }, (_, index) => ({
+  x: 800 + (index % 12) * 28,
+  y: 54 + Math.floor(index / 12) * 48,
+  r: 5,
+}));
+---
+
+<section id="como-funciona" class="bg-sky text-ink">
+  <div class="mx-auto max-w-[1440px] px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+    <div class="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+      <h2
+        class="max-w-[12ch] font-heading text-[clamp(2.4rem,4.8vw,4.8rem)] font-semibold leading-[0.95] tracking-[-0.05em] text-ink"
+      >
+        De la calle al expediente.
+      </h2>
+      <p class="max-w-[48ch] text-[15px] leading-6 text-ink/65 lg:justify-self-end">
+        El recorrido no depende de una llamada ni de una libreta. Tres pasos dejan un registro que
+        cualquiera puede consultar después.
+      </p>
+    </div>
+
+    <svg
+      viewBox="0 0 1200 260"
+      class="mt-12 w-full"
+      role="img"
+      aria-label="Los reportes dispersos se agrupan en un expediente y terminan en filas ordenadas"
+    >
+      <g fill="var(--ink)" opacity="0.22">
+        {scatter.map((dot) => <circle cx={dot.x} cy={dot.y} r={dot.r} />)}
+      </g>
+      <g fill="var(--maize)">
+        {ribbon.map((dot) => <circle cx={dot.x} cy={dot.y} r={dot.r} />)}
+      </g>
+      <g fill="var(--ink)">
+        {rows.map((dot) => <circle cx={dot.x} cy={dot.y} r={dot.r} />)}
+      </g>
+    </svg>
+
+    <div class="mt-10 grid gap-8 border-t border-ink/15 pt-8 sm:grid-cols-3">
+      <div>
+        <h3 class="font-heading text-2xl font-semibold tracking-[-0.035em] text-ink">Se reporta.</h3>
+        <p class="mt-2 max-w-[30ch] text-[15px] leading-6 text-ink/65">
+          Una persona envía una foto y su ubicación. El sistema comprueba que el punto esté dentro
+          de Tizimín.
+        </p>
+      </div>
+      <div>
+        <h3 class="font-heading text-2xl font-semibold tracking-[-0.035em] text-ink">Se agrupa.</h3>
+        <p class="mt-2 max-w-[30ch] text-[15px] leading-6 text-ink/65">
+          Si otro reporte cae a menos de 15 metros, se suma al mismo expediente en lugar de crear
+          un duplicado.
+        </p>
+      </div>
+      <div>
+        <h3 class="font-heading text-2xl font-semibold tracking-[-0.035em] text-ink">Se repara.</h3>
+        <p class="mt-2 max-w-[30ch] text-[15px] leading-6 text-ink/65">
+          El estado se actualiza desde la administración de Tízibaches. El historial queda visible para
+          todos.
+        </p>
+      </div>
+    </div>
+
+    <a
+      href="/mapa"
+      class={cn(
+        buttonVariants({ variant: "outline", size: "lg" }),
+        "mt-10 h-11 rounded-none border-ink/30 bg-transparent px-4 text-ink hover:bg-ink hover:text-sky",
+      )}
+    >
+      Ver el mapa
+    </a>
+  </div>
+</section>

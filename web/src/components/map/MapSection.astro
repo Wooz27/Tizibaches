@@ -1,0 +1,58 @@
+---
+import PotholeExplorer from "@/components/map/PotholeExplorer";
+import { buttonVariants } from "@/components/ui/button";
+import { formatNumber } from "@/lib/format";
+import type { PotholeFeature } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  features: PotholeFeature[];
+  error: string | null;
+}
+
+const { features, error } = Astro.props;
+---
+
+<section id="mapa" class="bg-bag pb-10 text-label sm:pb-14">
+  <div class="mx-auto max-w-[1440px] px-4 pt-16 sm:px-6 lg:px-8 lg:pt-20">
+    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <h2
+          class="max-w-[14ch] font-heading text-[clamp(2.4rem,4.6vw,4.6rem)] font-semibold leading-[0.94] tracking-[-0.05em] text-label"
+        >
+          Mapa de baches
+        </h2>
+        <p class="mt-3 max-w-[48ch] text-[15px] leading-6 text-label/65">
+          Filtra por estado, busca una calle y abre cada expediente con su foto y su historial.
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-4">
+        <span class="text-label/50">{formatNumber(features.length)} expedientes</span>
+        <a
+          href="/mapa"
+          class="text-[14px] font-medium text-label underline decoration-label/30 underline-offset-4 transition-colors hover:decoration-label"
+        >
+          Pantalla completa
+        </a>
+        <a
+          href="/app"
+          class={cn(
+            buttonVariants({ size: "sm" }),
+            "h-10 rounded-none bg-maize px-4 text-ink hover:bg-label hover:text-ink",
+          )}
+        >
+          Reportar un bache
+          <span aria-hidden="true" class="ml-1">↗</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <PotholeExplorer client:load features={features} error={error} full={false} />
+    </div>
+
+    <p class="mt-4 text-label/45">
+      Toca un punto o una fila para abrir el expediente. Las fotos actuales son de demostración.
+    </p>
+  </div>
+</section>

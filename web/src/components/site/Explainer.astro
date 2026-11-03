@@ -1,0 +1,47 @@
+---
+const columns = [
+  {
+    lead: "La foto.",
+    text: "Cada reporte conserva una imagen del punto, tomada por quien lo encontró en la calle.",
+  },
+  {
+    lead: "La ubicación.",
+    text: "Latitud, longitud y dirección se guardan juntas para que el bache se encuentre sin ambigüedad.",
+  },
+  {
+    lead: "El estado.",
+    text: "Reportado, verificado, programado, en obra o reparado: el expediente dice en qué punto va.",
+  },
+  {
+    lead: "El historial.",
+    text: "Cada cambio queda con fecha y responsable. Nada se borra al avanzar el proceso.",
+  },
+];
+---
+
+<section id="que-es" class="bg-label text-ink">
+  <div class="mx-auto max-w-[1440px] px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+    <h2
+      class="max-w-[13ch] font-heading text-[clamp(2.3rem,4.8vw,4.8rem)] font-semibold leading-[0.95] tracking-[-0.05em]"
+    >
+      El registro, por dentro.
+    </h2>
+
+    <p
+      class="mt-8 max-w-[62ch] text-[clamp(1.25rem,1.9vw,1.75rem)] leading-[1.3] tracking-[-0.02em] text-ink"
+    >
+      Un bache no es solo un hoyo. Es una llanta, un freno, una caída y una obra que alguien tiene
+      que programar. Este es el expediente que reúne todo eso en un solo lugar.
+    </p>
+
+    <div class="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        columns.map((column) => (
+          <p class="max-w-[32ch] text-[15px] leading-6 text-ink-soft">
+            <strong class="font-semibold text-ink">{column.lead}</strong> {column.text}
+          </p>
+        ))
+      }
+    </div>
+  </div>
+</section>

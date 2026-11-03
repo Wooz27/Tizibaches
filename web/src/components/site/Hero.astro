@@ -1,0 +1,65 @@
+---
+import MiniMap from "@/components/map/MiniMap";
+import { buttonVariants } from "@/components/ui/button";
+import type { PotholeFeature } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  features: PotholeFeature[];
+}
+
+const { features } = Astro.props;
+---
+
+<section class="relative min-h-svh overflow-hidden bg-bag">
+  <div class="absolute inset-0">
+    <MiniMap
+      bare
+      client:load
+      features={features}
+      styleUrl="https://tiles.openfreemap.org/styles/dark"
+    />
+  </div>
+  <div class="absolute inset-0 bg-bag/50" aria-hidden="true"></div>
+
+  <div
+    class="relative z-10 mx-auto flex min-h-svh max-w-[1440px] flex-col items-center justify-center px-4 pb-16 pt-28 text-center sm:px-6 lg:px-8"
+  >
+    <h1
+      class="max-w-[14ch] font-heading text-[clamp(3.2rem,7.4vw,7.6rem)] font-semibold leading-[0.9] tracking-[-0.06em] text-label"
+    >
+      <span class="block">Cada bache,</span>
+      <span class="block">un expediente.</span>
+    </h1>
+
+    <p class="mt-7 max-w-[44ch] text-[clamp(1.15rem,1.6vw,1.4rem)] leading-[1.35] text-label/80">
+      Un registro público con foto, ubicación y estado de cada bache de Tizimín.
+    </p>
+
+    <a
+      href="#mapa"
+      class={cn(
+        buttonVariants({ size: "lg" }),
+        "mt-8 h-12 rounded-full bg-maize px-6 text-ink hover:bg-label hover:text-ink",
+      )}
+    >
+      Abrir el mapa
+      <span aria-hidden="true" class="ml-1">↓</span>
+    </a>
+
+    <p class="mt-8 text-[13px] text-label/50">
+      Mapa: OpenFreeMap y OpenStreetMap
+    </p>
+  </div>
+
+  <img
+    id="hero-seal"
+    src="/brand/logo-mark.webp"
+    width="128"
+    height="128"
+    alt=""
+    class="absolute bottom-8 right-6 z-10 hidden size-28 object-contain sm:block lg:right-10"
+    loading="eager"
+    decoding="async"
+  />
+</section>

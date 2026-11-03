@@ -1,0 +1,73 @@
+---
+interface Props {
+  class?: string;
+  photo?: string;
+}
+
+const {
+  class: className = "",
+  photo = "/images/potholes/montreal.webp",
+} = Astro.props;
+---
+
+<div
+  class:list={["relative mx-auto w-full max-w-[19rem]", className]}
+  role="img"
+  aria-label="Vista previa de la app Android: reporte de un bache con foto, ubicación y estado"
+>
+  <div class="relative rounded-[2rem] border border-ink/25 bg-ink p-2">
+    <span class="absolute left-1/2 top-3 z-20 h-1.5 w-10 -translate-x-1/2 rounded-full bg-ink/80"></span>
+
+    <div class="relative overflow-hidden rounded-[1.55rem] bg-label text-ink">
+      <div class="flex items-center justify-between bg-ink px-4 pb-1 pt-2 text-label">
+        <span class="text-[10px]">9:41</span>
+        <span class="text-[10px]">Android</span>
+        <span class="flex items-center gap-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-maize"></span>
+          <span class="h-1.5 w-1.5 rounded-full bg-label/50"></span>
+        </span>
+      </div>
+
+      <div class="relative">
+        <img
+          src={photo}
+          alt=""
+          class="aspect-[4/3] w-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="absolute left-3 top-3 bg-ink/85 px-2.5 py-1 text-[10px] text-label">
+          Nuevo reporte
+        </span>
+        <span class="absolute bottom-3 left-3 right-3 bg-label/95 px-3 py-2 text-[11px]">
+          Calle 50 #312, Centro
+        </span>
+      </div>
+
+      <div class="space-y-2 p-3">
+        <div class="flex items-center justify-between bg-paper-deep px-3 py-2">
+          <span class="text-[11px] text-ink-soft">Estado</span>
+          <span class="text-[11px] font-medium">Reportado</span>
+        </div>
+        <div class="flex items-center justify-between bg-paper-deep px-3 py-2">
+          <span class="text-[11px] text-ink-soft">Severidad</span>
+          <span class="text-[11px] font-medium">Grave</span>
+        </div>
+        <div class="flex items-center justify-between bg-paper-deep px-3 py-2">
+          <span class="text-[11px] text-ink-soft">Ubicación</span>
+          <span class="text-[11px] font-medium">Lista</span>
+        </div>
+        <div class="mt-2 flex items-center justify-between bg-ink px-3 py-2.5 text-label">
+          <span class="text-[11px] font-medium">Enviar reporte</span>
+          <span aria-hidden="true">↗</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-around border-t border-ink/10 bg-label px-4 py-2 text-ink/50">
+        <span class="h-2.5 w-2.5 rounded-sm border border-current"></span>
+        <span class="size-2.5 rounded-full border border-current"></span>
+        <span class="h-2.5 w-2.5 border-x border-current"></span>
+      </div>
+    </div>
+  </div>
+</div>

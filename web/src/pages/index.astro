@@ -1,0 +1,29 @@
+---
+import MapSection from "@/components/map/MapSection.astro";
+import AppCallout from "@/components/site/AppCallout.astro";
+import Explainer from "@/components/site/Explainer.astro";
+import Hero from "@/components/site/Hero.astro";
+import HowItWorks from "@/components/site/HowItWorks.astro";
+import SiteFooter from "@/components/site/SiteFooter.astro";
+import SiteHeader from "@/components/site/SiteHeader.astro";
+import StatsStrip from "@/components/site/StatsStrip.astro";
+import BaseLayout from "@/layouts/main.astro";
+import { getPotholes } from "@/lib/api";
+import { buildStats } from "@/lib/stats";
+
+const { features, error } = await getPotholes();
+const stats = buildStats(features);
+---
+
+<BaseLayout>
+  <SiteHeader />
+  <main id="contenido">
+    <Hero features={features} />
+    <StatsStrip stats={stats} />
+    <Explainer />
+    <HowItWorks />
+    <MapSection features={features} error={error} />
+    <AppCallout />
+  </main>
+  <SiteFooter />
+</BaseLayout>

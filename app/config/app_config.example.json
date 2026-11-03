@@ -1,0 +1,6 @@
+{
+  "API_BASE_URL": "http://127.0.0.1:3000",
+  "PUBLIC_WEB_URL": "http://localhost:4321/mapa",
+  "GOOGLE_SERVER_CLIENT_ID": "<web-application-client-id>.apps.googleusercontent.com",
+  "GOOGLE_ANDROID_CLIENT_ID": "<android-client-id>.apps.googleusercontent.com"
+}
