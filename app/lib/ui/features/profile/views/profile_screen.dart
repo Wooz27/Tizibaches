@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -307,7 +306,6 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avatarUrl = user.avatarUrl;
     return Container(
       width: 56,
       height: 56,
@@ -316,29 +314,15 @@ class _Avatar extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: AppColors.label.withValues(alpha: 0.22)),
       ),
-      clipBehavior: Clip.antiAlias,
       alignment: Alignment.center,
-      child: avatarUrl == null || avatarUrl.isEmpty
-          ? Text(
-              user.initials,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.ink,
-                fontWeight: FontWeight.w700,
-              ),
-            )
-          : CachedNetworkImage(
-              imageUrl: avatarUrl,
-              fit: BoxFit.cover,
-              width: 56,
-              height: 56,
-              errorWidget: (context, url, error) => Text(
-                user.initials,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+      child: Text(
+        user.initials,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: AppColors.ink,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
+        ),
+      ),
     );
   }
 }

@@ -9,6 +9,8 @@ from django.db.models import Exists, F, OuterRef
 from django.utils import timezone
 
 from apps.reports.constants import OPEN_STATUSES
+from apps.reports.geocoding import reverse_geocode
+from apps.reports.geojson_cache import invalidate_geojson_cache
 from apps.reports.models import Pothole, Report
 
 
@@ -47,6 +49,11 @@ def create_report_with_dedupe(
     created = nearby is None
     pothole = nearby or Pothole.objects.create(location=point, severity=severity)
 
+    if not pothole.address:
+        address = reverse_geocode(point) or f"{settings.CITY_NAME}, Yucatán"
+        Pothole.objects.filter(pk=pothole.pk).update(address=address)
+        pothole.address = address
+
     report = Report(
         reporter=reporter,
         pothole=pothole,
@@ -61,6 +68,7 @@ def create_report_with_dedupe(
         report_count=F("report_count") + 1,
         last_reported_at=timezone.now(),
     )
+    transaction.on_commit(invalidate_geojson_cache)
 
     return ReportCreationResult(
         report=report,

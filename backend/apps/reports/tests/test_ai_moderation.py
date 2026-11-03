@@ -2,6 +2,7 @@ import pytest
 
 from apps.reports.ai import PotholeAssessment, apply_ai_assessment
 from apps.reports.geo import point_from_lat_lon
+from apps.reports.geojson_cache import invalidate_geojson_cache
 from apps.reports.models import Pothole, Report
 
 CENTER_LAT = 21.1430
@@ -59,6 +60,7 @@ def test_confirming_a_report_changes_public_status_to_reported(api_client, citiz
     assert initial["properties"]["status"] == "pending"
 
     Report.objects.filter(pothole=pothole).update(moderation=Report.Moderation.CONFIRMED)
+    invalidate_geojson_cache()
     confirmed = api_client.get("/api/potholes/geojson/").json()["features"][0]
     assert confirmed["properties"]["status"] == "reported"
 

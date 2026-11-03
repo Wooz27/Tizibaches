@@ -6,6 +6,7 @@ from django.db.models import ImageField, OuterRef, Subquery
 from django.utils import timezone
 from django.utils.html import format_html
 
+from apps.reports.geojson_cache import invalidate_geojson_cache
 from apps.reports.models import Pothole, Report, StatusEvent
 
 
@@ -110,6 +111,7 @@ class PotholeAdmin(GISModelAdmin):
                 to_status=obj.status,
                 changed_by=request.user,
             )
+        invalidate_geojson_cache()
 
 
 @admin.register(Report)
@@ -140,11 +142,13 @@ class ReportAdmin(GISModelAdmin):
     @admin.action(description="Aprobar y mostrar reportes seleccionados")
     def approve_reports(self, request, queryset):
         updated = queryset.update(moderation=Report.Moderation.CONFIRMED)
+        invalidate_geojson_cache()
         self.message_user(request, f"{updated} reportes aprobados.")
 
     @admin.action(description="Rechazar y ocultar reportes seleccionados")
     def reject_reports(self, request, queryset):
         updated = queryset.update(moderation=Report.Moderation.REJECTED)
+        invalidate_geojson_cache()
         self.message_user(request, f"{updated} reportes rechazados.")
 
     @admin.action(description="Volver a verificar con IA")

@@ -123,6 +123,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=["http://localhost:4321"])
+CORS_EXPOSE_HEADERS = ["ETag", "Last-Modified"]
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
     default=CORS_ALLOWED_ORIGINS,
@@ -195,6 +196,15 @@ if len(CITY_BBOX) != 4:
     raise ValueError("CITY_BBOX debe ser 'min_lon,min_lat,max_lon,max_lat'.")
 
 DEDUPE_RADIUS_M = env("DEDUPE_RADIUS_M")
+GEOJSON_CACHE_SECONDS = env.int("GEOJSON_CACHE_SECONDS", default=30)
+
+GEOCODING_ENABLED = env.bool("GEOCODING_ENABLED", default=False)
+GEOCODING_URL = env(
+    "GEOCODING_URL",
+    default="https://nominatim.openstreetmap.org/reverse",
+)
+GEOCODING_USER_AGENT = env("GEOCODING_USER_AGENT", default="Tizibaches/1.0")
+GEOCODING_TIMEOUT_SECONDS = env.int("GEOCODING_TIMEOUT_SECONDS", default=6)
 
 # Moderación de fotos con Gemini. El worker es opt-in para no generar costo
 # accidentalmente si una instalación tiene una key configurada.

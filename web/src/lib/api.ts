@@ -20,6 +20,41 @@ function normalizePhotoUrl(url: string | null): string | null {
   }
 }
 
+export async function getPotholesPublic(etag?: string | null): Promise<{
+  features: PotholeFeature[];
+  etag: string | null;
+  notModified: boolean;
+}> {
+  const response = await fetch(`${publicApiUrl}/api/potholes/geojson/`, {
+    headers: {
+      Accept: "application/json",
+      ...(etag ? { "If-None-Match": etag } : {}),
+    },
+    cache: "no-store",
+    signal: AbortSignal.timeout(8000),
+  });
+
+  if (response.status === 304) {
+    return { features: [], etag: etag ?? null, notModified: true };
+  }
+  if (!response.ok) {
+    throw new Error(`La API respondió con el código ${response.status}.`);
+  }
+
+  const data = (await response.json()) as PotholeCollection;
+  return {
+    features: data.features.map((feature) => ({
+      ...feature,
+      properties: {
+        ...feature.properties,
+        photo_url: normalizePhotoUrl(feature.properties.photo_url),
+      },
+    })),
+    etag: response.headers.get("ETag"),
+    notModified: false,
+  };
+}
+
 export async function getPotholes(): Promise<PotholesResult> {
   try {
     const response = await fetch(`${apiBaseUrl}/api/potholes/geojson/`, {

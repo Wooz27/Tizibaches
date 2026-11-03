@@ -1,4 +1,9 @@
+from datetime import UTC, datetime
+from urllib.parse import urlencode
+
+from django.conf import settings
 from django.db.models import Exists, OuterRef, Subquery
+from django.http import HttpResponseNotModified
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -7,6 +12,13 @@ from rest_framework.response import Response
 
 from apps.reports.constants import MAX_GEOJSON_FEATURES
 from apps.reports.geo import bbox_from_query
+from apps.reports.geojson_cache import (
+    get_cached,
+    last_modified_from_data,
+    last_modified_header,
+    make_etag,
+    set_cached,
+)
 from apps.reports.models import Pothole, Report
 from apps.reports.serializers import (
     PotholeGeoSerializer,
@@ -91,9 +103,38 @@ class PotholeViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="geojson")
     def geojson(self, request):
-        # Limita la respuesta para no enviar un GeoJSON enorme al mapa.
-        queryset = self.filter_queryset(self.get_queryset())[:MAX_GEOJSON_FEATURES]
-        serializer = PotholeGeoSerializer(queryset, many=True, context={"request": request})
-        response = Response(serializer.data)
-        response["Cache-Control"] = "public, max-age=60"
+        # Cachea por variante de consulta y permite respuestas 304 sin rehacer
+        # la consulta espacial ni serializar el mapa completo.
+        query = urlencode(sorted(request.query_params.items()))
+        cached = get_cached(query)
+        if cached is None:
+            queryset = self.filter_queryset(self.get_queryset())[:MAX_GEOJSON_FEATURES]
+            serializer = PotholeGeoSerializer(
+                queryset, many=True, context={"request": request}
+            )
+            data = serializer.data
+            last_modified = last_modified_from_data(data)
+            etag = make_etag(data)
+            set_cached(query, data, last_modified, etag)
+        else:
+            data = cached["data"]
+            etag = cached["etag"]
+            last_modified = (
+                datetime.fromtimestamp(cached["last_modified"], tz=UTC)
+                if cached["last_modified"]
+                else None
+            )
+
+        response_status = 200
+        if request.headers.get("If-None-Match") == etag:
+            response = HttpResponseNotModified()
+            response_status = 304
+        else:
+            response = Response(data, status=response_status)
+
+        response["Cache-Control"] = f"public, max-age={settings.GEOJSON_CACHE_SECONDS}"
+        response["ETag"] = etag
+        last_modified_value = last_modified_header(last_modified)
+        if last_modified_value:
+            response["Last-Modified"] = last_modified_value
         return response

@@ -10,6 +10,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from PIL import Image, ImageOps
 from pydantic import BaseModel, Field
 
+from apps.reports.geojson_cache import invalidate_geojson_cache
 from apps.reports.models import Report
 
 
@@ -147,6 +148,7 @@ def apply_ai_assessment(report: Report, assessment: PotholeAssessment) -> None:
             "ai_checked_at",
         ]
     )
+    invalidate_geojson_cache()
 
 
 def mark_ai_error(report: Report, exc: Exception) -> None:

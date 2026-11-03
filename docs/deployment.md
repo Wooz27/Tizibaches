@@ -41,7 +41,18 @@ GOOGLE_CLIENT_IDS=<web-client-id>.apps.googleusercontent.com
 AI_VERIFICATION_ENABLED=1
 GEMINI_API_KEY=<gemini-key>
 GEMINI_VISION_MODEL=gemini-3.1-flash-lite
+
+# GeoJSON y direcciones
+GEOJSON_CACHE_SECONDS=30
+GEOCODING_ENABLED=1
+GEOCODING_USER_AGENT=Tizibaches/1.0
 ```
+
+La web consulta el GeoJSON cada 60–90 segundos, solo con la pestaña visible y
+usando `ETag`; una respuesta sin cambios es `304` y no vuelve a consultar ni
+serializar la base. La app usa el mismo intervalo con jitter y pausa el refresco
+en segundo plano. Para geocodificación inversa se usa Nominatim; respeta su
+límite de una petición por segundo y el caché de direcciones.
 
 `PUBLIC_API_URL` se compila dentro de Astro; si cambia el dominio hay que
 reconstruir la imagen web. `DJANGO_ALLOWED_HOSTS` debe incluir el dominio y el

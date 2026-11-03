@@ -29,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { getPotholesPublic } from "@/lib/api";
 import { SORT_OPTIONS, STATUS_META, STATUS_ORDER } from "@/lib/constants";
 import {
   coordinatesLabel,
@@ -282,6 +283,7 @@ function PotholeDetail({ feature }: { feature: PotholeFeature }) {
 }
 
 export default function PotholeExplorer({ features, error, full = false }: ExplorerProps) {
+  const [liveFeatures, setLiveFeatures] = useState(features);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("recent");
@@ -299,17 +301,68 @@ export default function PotholeExplorer({ features, error, full = false }: Explo
   const markerElementsRef = useRef(new Map<number, HTMLButtonElement>());
   const selectedIdRef = useRef<number | null>(selectedId);
 
+  useEffect(() => {
+    setLiveFeatures(features);
+  }, [features]);
+
+  useEffect(() => {
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let inFlight = false;
+    let etag: string | null = null;
+
+    const schedule = () => {
+      if (stopped) return;
+      const jitter = Math.floor(Math.random() * 30_000);
+      timer = setTimeout(refresh, 60_000 + jitter);
+    };
+
+    const refresh = async () => {
+      if (stopped || inFlight || document.visibilityState !== "visible") {
+        schedule();
+        return;
+      }
+      inFlight = true;
+      try {
+        const result = await getPotholesPublic(etag);
+        if (!result.notModified) {
+          setLiveFeatures(result.features);
+          etag = result.etag;
+        }
+      } catch {
+        // La próxima vuelta reintenta sin afectar la vista actual.
+      } finally {
+        inFlight = false;
+        schedule();
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible" || stopped) return;
+      if (timer) clearTimeout(timer);
+      void refresh();
+    };
+
+    schedule();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      stopped = true;
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
+
   const counts = useMemo(() => {
-    return features.reduce<Record<string, number>>((result, feature) => {
+    return liveFeatures.reduce<Record<string, number>>((result, feature) => {
       const status = feature.properties.status;
       result[status] = (result[status] ?? 0) + 1;
       return result;
     }, {});
-  }, [features]);
+  }, [liveFeatures]);
 
   const visibleFeatures = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    const filtered = features.filter((feature) => {
+    const filtered = liveFeatures.filter((feature) => {
       const matchesStatus =
         statusFilter === "all" || feature.properties.status === statusFilter;
       const searchable = [
@@ -327,10 +380,10 @@ export default function PotholeExplorer({ features, error, full = false }: Explo
       if (sortBy === "reports") return b.properties.report_count - a.properties.report_count;
       return b.properties.last_reported_at.localeCompare(a.properties.last_reported_at);
     });
-  }, [features, query, sortBy, statusFilter]);
+  }, [liveFeatures, query, sortBy, statusFilter]);
 
   const selectedFeature =
-    features.find((feature) => feature.id === selectedId) ?? null;
+    liveFeatures.find((feature) => feature.id === selectedId) ?? null;
 
   useEffect(() => {
     selectedIdRef.current = selectedId;
@@ -364,7 +417,7 @@ export default function PotholeExplorer({ features, error, full = false }: Explo
         map.on("load", () => {
           if (cancelled) return;
           setMapReady(true);
-          fitToFeatures(map, features);
+          fitToFeatures(map, liveFeatures);
         });
 
         map.on("error", () => {

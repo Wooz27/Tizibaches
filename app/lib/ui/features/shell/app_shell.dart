@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -22,8 +25,11 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   final _mapKey = GlobalKey<MapScreenState>();
+  final _random = Random();
+  Timer? _refreshTimer;
+  bool _refreshing = false;
   int _index = 0;
 
   MapViewModel get _map => widget.dependencies.mapViewModel;
@@ -33,10 +39,12 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _auth.addListener(_handleAuthChanged);
     _applyOverlay(0);
     _map.load();
     if (_auth.isSignedIn) _reports.load();
+    _scheduleRefresh();
   }
 
   void _applyOverlay(int index) {
@@ -60,8 +68,42 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _auth.removeListener(_handleAuthChanged);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _scheduleRefresh();
+    } else {
+      _refreshTimer?.cancel();
+    }
+  }
+
+  void _scheduleRefresh() {
+    _refreshTimer?.cancel();
+    final seconds = 60 + _random.nextInt(31);
+    _refreshTimer = Timer(Duration(seconds: seconds), _refreshVisibleData);
+  }
+
+  Future<void> _refreshVisibleData() async {
+    if (!mounted || _refreshing) return;
+    if (_index > 1) {
+      _scheduleRefresh();
+      return;
+    }
+
+    _refreshing = true;
+    try {
+      if (_index == 0) await _map.refresh();
+      if (_auth.isSignedIn) await _reports.refresh();
+    } finally {
+      _refreshing = false;
+      _scheduleRefresh();
+    }
   }
 
   void _handleAuthChanged() {
