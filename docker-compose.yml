@@ -102,7 +102,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:4321/').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:4321/health').then(async r => { await r.text(); process.exit(r.ok ? 0 : 1); }).catch(() => process.exit(1));",
         ]
       interval: 10s
       timeout: 5s
