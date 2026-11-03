@@ -40,7 +40,8 @@ services:
     volumes:
       - media:/app/media
     ports:
-      - "3000:3000"
+      # Solo accesible desde el host; el tráfico público entra por el proxy.
+      - "127.0.0.1:3000:3000"
     depends_on:
       db:
         condition: service_healthy
@@ -91,7 +92,8 @@ services:
       PORT: "4321"
       API_URL: http://backend:3000
     ports:
-      - "4321:4321"
+      # Solo accesible desde el host; el tráfico público entra por el proxy.
+      - "127.0.0.1:4321:4321"
     depends_on:
       backend:
         condition: service_healthy
