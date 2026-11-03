@@ -53,6 +53,7 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _selectSection(int index) {
+    FocusManager.instance.primaryFocus?.unfocus();
     _applyOverlay(index);
     setState(() => _index = index);
   }
@@ -77,6 +78,7 @@ class _AppShellState extends State<AppShell> {
       if (!signedIn) return;
     }
     if (!mounted) return;
+    FocusManager.instance.primaryFocus?.unfocus();
 
     final submitted = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
