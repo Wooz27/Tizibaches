@@ -58,7 +58,11 @@ export async function getPotholesPublic(etag?: string | null): Promise<{
 export async function getPotholes(): Promise<PotholesResult> {
   try {
     const response = await fetch(`${apiBaseUrl}/api/potholes/geojson/`, {
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        // La llamada interna Astro -> Django ya viaja dentro de la red privada.
+        "X-Forwarded-Proto": "https",
+      },
       cache: "no-store",
       signal: AbortSignal.timeout(8000),
     });
