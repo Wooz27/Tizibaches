@@ -46,3 +46,6 @@ app/android/*.local.txt
 .taste-skill/
 *.log
 *.pem
+
+# Artefactos locales para Play Store
+reales/
