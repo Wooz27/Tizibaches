@@ -40,9 +40,8 @@ services:
       DJANGO_TRUST_PROXY: "1"
     volumes:
       - media:/app/media
-    ports:
-      # Solo accesible desde el host; el tráfico público entra por el proxy.
-      - "127.0.0.1:3000:3000"
+    expose:
+      - "3000"
     depends_on:
       db:
         condition: service_healthy
@@ -92,9 +91,8 @@ services:
       HOST: 0.0.0.0
       PORT: "4321"
       API_URL: http://backend:3000
-    ports:
-      # Solo accesible desde el host; el tráfico público entra por el proxy.
-      - "127.0.0.1:4321:4321"
+    expose:
+      - "4321"
     depends_on:
       backend:
         condition: service_healthy
