@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep, strftime
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -34,6 +34,15 @@ class Command(BaseCommand):
         if not settings.GEMINI_API_KEY:
             raise CommandError("Falta GEMINIS_KEY o GEMINI_API_KEY en el entorno.")
 
+        mode = "loop" if options["loop"] else "once"
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"[{strftime('%H:%M:%S')}] [AI] worker iniciado "
+                f"mode={mode} model={settings.GEMINI_VISION_MODEL} "
+                f"sleep={options['sleep']}s limit={options['limit']}"
+            )
+        )
+
         while True:
             processed = 0
             for _ in range(max(1, options["limit"])):
@@ -41,10 +50,13 @@ class Command(BaseCommand):
                     if not self._process_next():
                         break
                 except AIUnavailable as exc:
+                    self.stderr.write(f"[AI] worker detenido: {exc}")
                     raise CommandError(str(exc)) from exc
                 processed += 1
 
-            self.stdout.write(f"Verificados: {processed}")
+            self.stdout.write(
+                f"[{strftime('%H:%M:%S')}] [AI] ciclo completado: verificados={processed}"
+            )
             if options["once"] or not options["loop"]:
                 return
             if processed == 0:
@@ -62,18 +74,31 @@ class Command(BaseCommand):
             if report is None:
                 return False
 
+            self.stdout.write(
+                f"[{strftime('%H:%M:%S')}] [AI] procesando reporte={report.pk} "
+                f"pothole={report.pothole_id}"
+            )
             try:
                 assessment = verify_report_photo(report)
             except AIUnavailable:
                 raise
             except AIAnalysisError as exc:
                 mark_ai_error(report, exc)
-                self.stderr.write(f"Reporte {report.pk}: {exc}")
+                self.stderr.write(f"[AI] reporte={report.pk} error={exc}")
                 return True
             except Exception as exc:
                 mark_ai_error(report, exc)
-                self.stderr.write(f"Reporte {report.pk}: error inesperado ({type(exc).__name__})")
+                self.stderr.write(
+                    f"[AI] reporte={report.pk} error_inesperado={type(exc).__name__}"
+                )
                 return True
 
             apply_ai_assessment(report, assessment)
+            self.stdout.write(
+                f"[{strftime('%H:%M:%S')}] [AI] reporte={report.pk} "
+                f"pothole={report.pothole_id} es_bache={assessment.is_pothole} "
+                f"confianza={assessment.confidence:.2f} "
+                f"moderacion={report.moderation} "
+                f"veredicto={report.ai_verdict}"
+            )
             return True

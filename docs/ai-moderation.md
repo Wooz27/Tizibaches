@@ -77,11 +77,23 @@ AI_MAX_OUTPUT_TOKENS=200
 AI_THINKING_LEVEL=minimal
 ```
 
-Con Docker Compose, el worker es un perfil opcional:
+Con Docker Compose, el worker arranca con el stack:
 
 ```bash
-docker compose --profile ai up -d ai-worker
+docker compose up -d ai-worker
 ```
+
+Dokploy debe tener `GEMINI_API_KEY` en el entorno; si falta, revisa los logs
+del servicio `ai-worker`.
+
+Los logs muestran el inicio del worker, cada reporte procesado, su confianza,
+la moderación resultante y los errores:
+
+```bash
+docker compose logs -f ai-worker
+```
+
+En Dokploy se ven en el servicio `ai-worker` dentro de **Logs**.
 
 Sin Docker:
 

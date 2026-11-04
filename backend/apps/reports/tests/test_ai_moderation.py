@@ -39,25 +39,22 @@ def test_map_hides_pothole_when_all_reports_are_rejected(api_client, citizen):
 
 
 @pytest.mark.django_db
-def test_pending_report_is_visible_as_pending_review(api_client, citizen):
+def test_pending_report_is_hidden_from_the_public_map(api_client, citizen):
     pothole = make_pothole()
     make_report(pothole, citizen, Report.Moderation.PENDING)
 
     response = api_client.get("/api/potholes/geojson/")
 
     assert response.status_code == 200
-    features = response.json()["features"]
-    assert len(features) == 1
-    assert features[0]["properties"]["status"] == "pending"
+    assert response.json()["features"] == []
 
 
 @pytest.mark.django_db
-def test_confirming_a_report_changes_public_status_to_reported(api_client, citizen):
+def test_confirming_a_report_publishes_it_to_the_map(api_client, citizen):
     pothole = make_pothole()
     make_report(pothole, citizen, Report.Moderation.PENDING)
 
-    initial = api_client.get("/api/potholes/geojson/").json()["features"][0]
-    assert initial["properties"]["status"] == "pending"
+    assert api_client.get("/api/potholes/geojson/").json()["features"] == []
 
     Report.objects.filter(pothole=pothole).update(moderation=Report.Moderation.CONFIRMED)
     invalidate_geojson_cache()

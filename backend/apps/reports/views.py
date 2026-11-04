@@ -68,14 +68,14 @@ class PotholeViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_fields = ["status", "severity"]
 
     def get_queryset(self):
-        # Un bache sin reportes aprobados no debe aparecer en el mapa público.
+        # El mapa público solo muestra baches con al menos un reporte confirmado.
         reports = Report.objects.filter(pothole=OuterRef("pk"))
-        visible_reports = reports.exclude(moderation=Report.Moderation.REJECTED)
         confirmed_reports = reports.filter(moderation=Report.Moderation.CONFIRMED)
-        pending_reports = reports.filter(moderation=Report.Moderation.PENDING)
         latest_photo = (
-            Report.objects.filter(pothole=OuterRef("pk"))
-            .exclude(moderation=Report.Moderation.REJECTED)
+            Report.objects.filter(
+                pothole=OuterRef("pk"),
+                moderation=Report.Moderation.CONFIRMED,
+            )
             .order_by("-created_at")
             .values("photo")[:1]
         )
@@ -83,10 +83,9 @@ class PotholeViewSet(viewsets.ReadOnlyModelViewSet):
             super()
             .get_queryset()
             .exclude(status=Pothole.Status.REJECTED)
-            .filter(~Exists(reports) | Exists(visible_reports))
+            .filter(~Exists(reports) | Exists(confirmed_reports))
             .annotate(
                 has_confirmed_reports=Exists(confirmed_reports),
-                has_pending_reports=Exists(pending_reports),
                 latest_photo=Subquery(latest_photo),
             )
         )
