@@ -45,7 +45,7 @@ class AuthPromptSheet extends StatelessWidget {
               const BrandLogo(size: 42),
               const SizedBox(height: 18),
               Text(
-                'Para reportar,\nentrá con Google.',
+                'Para reportar,\nentra con Google.',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 8),

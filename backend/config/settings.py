@@ -187,6 +187,7 @@ REST_FRAMEWORK = {
         "anon": "60/min",
         "user": "120/min",
         "auth": "5/min",
+        "report_create": "30/hour",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
@@ -216,6 +217,7 @@ if len(CITY_BBOX) != 4:
     raise ValueError("CITY_BBOX debe ser 'min_lon,min_lat,max_lon,max_lat'.")
 
 DEDUPE_RADIUS_M = env("DEDUPE_RADIUS_M")
+REPORT_DUPLICATE_WINDOW_HOURS = env.int("REPORT_DUPLICATE_WINDOW_HOURS", default=12)
 GEOJSON_CACHE_SECONDS = env.int("GEOJSON_CACHE_SECONDS", default=30)
 
 GEOCODING_ENABLED = env.bool("GEOCODING_ENABLED", default=False)
@@ -233,7 +235,11 @@ AI_VERIFICATION_ENABLED = env.bool("AI_VERIFICATION_ENABLED", default=False)
 GEMINI_VISION_MODEL = env("GEMINI_VISION_MODEL", default="gemini-3.1-flash-lite")
 AI_CONFIRM_THRESHOLD = env.float("AI_CONFIRM_THRESHOLD", default=0.85)
 AI_REJECT_THRESHOLD = env.float("AI_REJECT_THRESHOLD", default=0.90)
+AI_AUTHENTICITY_THRESHOLD = env.float("AI_AUTHENTICITY_THRESHOLD", default=0.85)
 AI_TIMEOUT_SECONDS = env.int("AI_TIMEOUT_SECONDS", default=25)
+TELEGRAM_API_KEY = env("TELEGRAM_API_KEY", default="")
+USER_TELEGRAM = env("USER_TELEGRAM", default="")
+TELEGRAM_TIMEOUT_SECONDS = env.int("TELEGRAM_TIMEOUT_SECONDS", default=5)
 AI_MAX_OUTPUT_TOKENS = env.int("AI_MAX_OUTPUT_TOKENS", default=200)
 AI_THINKING_LEVEL = env("AI_THINKING_LEVEL", default="minimal")
 if not 0 <= AI_CONFIRM_THRESHOLD <= 1:

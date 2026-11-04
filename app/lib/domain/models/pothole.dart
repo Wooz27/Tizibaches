@@ -9,6 +9,8 @@ class Pothole {
     required this.latitude,
     required this.longitude,
     required this.address,
+    this.name = '',
+    this.note = '',
     this.firstReportedAt,
     this.lastReportedAt,
     this.fixedAt,
@@ -16,6 +18,8 @@ class Pothole {
   });
 
   final int id;
+  final String name;
+  final String note;
   final PotholeStatus status;
   final int severity;
   final int reportCount;
@@ -30,6 +34,8 @@ class Pothole {
   String get displayAddress =>
       address.trim().isEmpty ? 'Tizimín, Yucatán' : address.trim();
 
+  String get displayName => name.trim().isEmpty ? 'Bache #$id' : name.trim();
+
   String get severityLabel => switch (severity) {
     <= 1 => 'Leve',
     2 => 'Moderado',
@@ -38,6 +44,8 @@ class Pothole {
   };
 
   Pothole copyWith({
+    String? name,
+    String? note,
     PotholeStatus? status,
     int? severity,
     int? reportCount,
@@ -48,6 +56,8 @@ class Pothole {
   }) {
     return Pothole(
       id: id,
+      name: name ?? this.name,
+      note: note ?? this.note,
       status: status ?? this.status,
       severity: severity ?? this.severity,
       reportCount: reportCount ?? this.reportCount,

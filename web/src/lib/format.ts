@@ -19,6 +19,14 @@ export function formatNumber(value: number): string {
   return numberFormatter.format(value);
 }
 
+export function pluralize(
+  value: number,
+  singular: string,
+  plural: string,
+): string {
+  return `${formatNumber(value)} ${value === 1 ? singular : plural}`;
+}
+
 export function statusLabel(status: string): string {
   return STATUS_META[status as PotholeStatus]?.label ?? status;
 }

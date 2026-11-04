@@ -23,6 +23,7 @@ class ReportController extends ChangeNotifier {
   PickedPhoto? _photo;
   LocatedPoint? _location;
   int _severity = 2;
+  String _name = '';
   String _description = '';
   bool _locating = false;
   bool _submitting = false;
@@ -33,6 +34,7 @@ class ReportController extends ChangeNotifier {
   PickedPhoto? get photo => _photo;
   LocatedPoint? get location => _location;
   int get severity => _severity;
+  String get name => _name;
   String get description => _description;
   bool get locating => _locating;
   bool get submitting => _submitting;
@@ -110,6 +112,10 @@ class ReportController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setName(String value) {
+    _name = value;
+  }
+
   void setDescription(String value) {
     _description = value;
   }
@@ -120,7 +126,7 @@ class ReportController extends ChangeNotifier {
     final location = _location;
 
     if (photo == null) {
-      _error = 'Agregá una foto del bache para continuar.';
+      _error = 'Agrega una foto del bache para continuar.';
       notifyListeners();
       return false;
     }
@@ -142,6 +148,7 @@ class ReportController extends ChangeNotifier {
           severity: _severity,
           photoBytes: photo.bytes,
           photoName: photo.name,
+          name: _name,
           description: _description,
           approximateLocation: _approximate,
         ),
@@ -151,7 +158,7 @@ class ReportController extends ChangeNotifier {
       _error = failure.message;
       return false;
     } on Exception {
-      _error = 'No pudimos enviar el reporte. Intentá de nuevo.';
+      _error = 'No pudimos enviar el reporte. Intenta de nuevo.';
       return false;
     } finally {
       _submitting = false;
@@ -163,6 +170,7 @@ class ReportController extends ChangeNotifier {
     _photo = null;
     _location = null;
     _severity = 2;
+    _name = '';
     _description = '';
     _locating = false;
     _submitting = false;

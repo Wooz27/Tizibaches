@@ -1,7 +1,7 @@
 ---
 import PotholeExplorer from "@/components/map/PotholeExplorer";
 import { buttonVariants } from "@/components/ui/button";
-import { formatNumber } from "@/lib/format";
+import { pluralize } from "@/lib/format";
 import type { PotholeFeature } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ const { features, error } = Astro.props;
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-4">
-        <span class="text-label/50">{formatNumber(features.length)} expedientes</span>
+        <span class="text-label/50">{pluralize(features.length, "expediente", "expedientes")}</span>
         <a
           href="/mapa"
           class="text-[14px] font-medium text-label underline decoration-label/30 underline-offset-4 transition-colors hover:decoration-label"

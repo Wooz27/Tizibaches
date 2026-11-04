@@ -494,7 +494,7 @@ class _PotholeMapMarker extends StatelessWidget {
     return Semantics(
       button: true,
       label:
-          '${pothole.status.label}, ${pothole.severityLabel}, ${pothole.displayAddress}',
+          '${pothole.status.label}, ${pothole.severityLabel}, ${pothole.displayName}, ${pothole.displayAddress}',
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,

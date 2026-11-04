@@ -47,6 +47,8 @@ class PotholeRepository {
     final rawId = feature['id'] ?? props['id'];
     return Pothole(
       id: (rawId as num?)?.toInt() ?? 0,
+      name: props['name'] as String? ?? '',
+      note: props['note'] as String? ?? '',
       status: PotholeStatus.fromApi(props['status'] as String?),
       severity: (props['severity'] as num?)?.toInt() ?? 1,
       reportCount: (props['report_count'] as num?)?.toInt() ?? 0,

@@ -8,9 +8,11 @@ export type PotholeStatus =
   | "rejected";
 
 export type PotholeProperties = {
+  name: string;
   status: PotholeStatus;
   severity: number;
   report_count: number;
+  note: string;
   address: string;
   first_reported_at: string;
   last_reported_at: string;

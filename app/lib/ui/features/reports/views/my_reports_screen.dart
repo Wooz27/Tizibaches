@@ -80,7 +80,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                     Text(
                       signedIn
                           ? 'Sigue el estado de cada bache que reportaste.'
-                          : 'Entrá con Google para guardar y seguir tus reportes.',
+                          : 'Entra con Google para guardar y seguir tus reportes.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.inkSoft,
                       ),

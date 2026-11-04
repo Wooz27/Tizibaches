@@ -1,10 +1,12 @@
 from dataclasses import dataclass
+from datetime import timedelta
+from hashlib import sha256
 
 from django.conf import settings
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Exists, F, OuterRef
 from django.utils import timezone
 
@@ -14,11 +16,35 @@ from apps.reports.geojson_cache import invalidate_geojson_cache
 from apps.reports.models import Pothole, Report
 
 
+class DuplicateReport(RuntimeError):
+    pass
+
+
+class DuplicatePhoto(RuntimeError):
+    pass
+
+
 @dataclass(frozen=True)
 class ReportCreationResult:
     report: Report
     created: bool
     distance_m: float | None
+
+
+def _photo_sha256(photo) -> str:
+    photo.seek(0)
+    digest = sha256(photo.read()).hexdigest()
+    photo.seek(0)
+    return digest
+
+
+def _recent_duplicate_report(reporter, pothole: Pothole) -> bool:
+    return Report.objects.filter(
+        reporter=reporter,
+        pothole=pothole,
+        created_at__gte=timezone.now()
+        - timedelta(hours=settings.REPORT_DUPLICATE_WINDOW_HOURS),
+    ).exists()
 
 
 def find_nearby_open_pothole(point: Point) -> Pothole | None:
@@ -42,12 +68,27 @@ def create_report_with_dedupe(
     point: Point,
     photo,
     severity: int,
+    name: str = "",
     description: str = "",
 ) -> ReportCreationResult:
     # Asocia el reporte a un bache cercano o crea uno nuevo.
     nearby = find_nearby_open_pothole(point)
+    if nearby is not None and _recent_duplicate_report(reporter, nearby):
+        raise DuplicateReport(
+            "Ya reportaste este bache en las últimas "
+            f"{settings.REPORT_DUPLICATE_WINDOW_HOURS} horas."
+        )
+
+    photo_hash = _photo_sha256(photo)
+    if Report.objects.filter(photo_sha256=photo_hash).exists():
+        raise DuplicatePhoto("Esta foto ya fue usada en otro reporte.")
+
     created = nearby is None
-    pothole = nearby or Pothole.objects.create(location=point, severity=severity)
+    pothole = nearby or Pothole.objects.create(
+        location=point,
+        severity=severity,
+        name=name.strip(),
+    )
 
     if not pothole.address:
         address = reverse_geocode(point) or f"{settings.CITY_NAME}, Yucatán"
@@ -60,9 +101,14 @@ def create_report_with_dedupe(
         location=point,
         severity=severity,
         description=description,
+        photo_sha256=photo_hash,
     )
     report.photo.save(photo.name, photo, save=False)
-    report.save()
+    try:
+        with transaction.atomic():
+            report.save()
+    except IntegrityError as exc:
+        raise DuplicatePhoto("Esta foto ya fue usada en otro reporte.") from exc
 
     Pothole.objects.filter(pk=pothole.pk).update(
         report_count=F("report_count") + 1,

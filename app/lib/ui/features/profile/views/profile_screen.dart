@@ -347,14 +347,14 @@ class _GuestCard extends StatelessWidget {
           const BrandLogo(size: 42),
           const SizedBox(height: 16),
           Text(
-            'Explorás sin cuenta.',
+            'Exploras sin cuenta.',
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(color: AppColors.label),
           ),
           const SizedBox(height: 6),
           Text(
-            'Entrá con Google para reportar, guardar tu historial y recibir el estado de tus expedientes.',
+            'Entra con Google para reportar, guardar tu historial y recibir el estado de tus expedientes.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.onDarkMuted,
               height: 1.45,

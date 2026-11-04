@@ -81,7 +81,7 @@ class ApiService {
       return await action().timeout(const Duration(seconds: 30));
     } on TimeoutException {
       throw const AppFailure(
-        'El servidor tardó demasiado en responder. Intentá de nuevo.',
+        'El servidor tardó demasiado en responder. Intenta de nuevo.',
       );
     } on AppFailure {
       rethrow;
@@ -155,11 +155,11 @@ class ApiService {
         statusCode: 409,
       ),
       429 => const AppFailure(
-        'Demasiados intentos. Esperá un momento.',
+        'Demasiados intentos. Espera un momento.',
         statusCode: 429,
       ),
       >= 500 => AppFailure(
-        'El servidor falló. Intentá de nuevo en unos minutos.',
+        'El servidor falló. Intenta de nuevo en unos minutos.',
         statusCode: status,
       ),
       _ => AppFailure('La solicitud falló ($status).', statusCode: status),

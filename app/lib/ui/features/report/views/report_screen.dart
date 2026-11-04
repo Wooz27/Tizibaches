@@ -25,6 +25,7 @@ class ReportScreen extends StatefulWidget {
 }
 
 class _ReportScreenState extends State<ReportScreen> {
+  final _name = TextEditingController();
   final _description = TextEditingController();
 
   @override
@@ -43,6 +44,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   @override
   void dispose() {
+    _name.dispose();
     _description.dispose();
     super.dispose();
   }
@@ -158,8 +160,32 @@ class _ReportScreenState extends State<ReportScreen> {
                           ),
                           const SizedBox(height: 26),
                           const _SectionTitle(
+                            title: 'Nombre',
+                            detail: 'Solo se usa si tu reporte abre un expediente nuevo.',
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _name,
+                            onChanged: controller.setName,
+                            maxLength: 80,
+                            textCapitalization: TextCapitalization.words,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            decoration: const InputDecoration(
+                              hintText: 'Ej. El cráter de la calle 50',
+                            ),
+                            buildCounter:
+                                (
+                                  context, {
+                                  required currentLength,
+                                  required isFocused,
+                                  required maxLength,
+                                }) => null,
+                          ),
+                          const SizedBox(height: 26),
+                          const _SectionTitle(
                             title: 'Detalle',
-                            detail: 'Opcional, pero ayuda a clasificar el bache.',
+                            detail:
+                                'Opcional. Se muestra en el mapa; no incluyas datos personales.',
                           ),
                           const SizedBox(height: 10),
                           TextField(

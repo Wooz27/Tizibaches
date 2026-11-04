@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from base64 import b64encode
+from enum import Enum
 from io import BytesIO
 
 from django.conf import settings
@@ -12,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from apps.reports.geojson_cache import invalidate_geojson_cache
 from apps.reports.models import Report
+from apps.reports.notifications import notify_manual_moderation
 
 
 class AIUnavailable(RuntimeError):
@@ -20,6 +22,14 @@ class AIUnavailable(RuntimeError):
 
 class AIAnalysisError(RuntimeError):
     pass
+
+
+class PhotoSource(str, Enum):
+    CAMERA = "camera"
+    STOCK = "stock"
+    GENERATED = "generated"
+    SCREENSHOT = "screenshot"
+    UNKNOWN = "unknown"
 
 
 class PotholeAssessment(BaseModel):
@@ -41,6 +51,23 @@ class PotholeAssessment(BaseModel):
         le=4,
         description="Optional visual severity from 1 (mild) to 4 (very severe).",
     )
+    source: PhotoSource = Field(
+        description=(
+            "Origin that the image most resembles: camera, stock, generated, "
+            "screenshot or unknown."
+        )
+    )
+    is_authentic: bool = Field(
+        description=(
+            "True only when it looks like a casual photo taken by a citizen "
+            "with a phone, not a stock image, AI generation or screenshot."
+        )
+    )
+    authenticity_confidence: float = Field(
+        ge=0.0,
+        le=1.0,
+        description="Confidence in the authenticity classification, from 0 to 1.",
+    )
 
 
 PROMPT = """Eres un moderador de reportes ciudadanos de baches en Tizimín, Yucatán.
@@ -53,11 +80,23 @@ asfalto, con evidencia visual suficiente. Marca false si es un meme, captura de 
 texto, una persona, un vehículo, un interior, una imagen generada, una foto sin calle o
 cualquier contenido que no permita identificar un bache.
 
+También evalúa si parece una foto auténtica tomada por un ciudadano con su teléfono, no una
+imagen de stock, generada con IA, captura de pantalla o descargada de internet.
+- is_authentic=true solo si parece una foto casual de celular, con perspectiva, iluminación
+  y contexto de calle reales.
+- is_authentic=false si parece stock (composición profesional, iluminación perfecta,
+  watermark, texto, fondo genérico), IA (detalles imposibles, asfalto demasiado limpio,
+  textura repetida, bordes raros) o una imagen reutilizada.
+- No marques is_authentic=false solo por baja calidad, estar borrosa, mojada o tener poca luz.
+- source: camera, stock, generated, screenshot o unknown.
+- authenticity_confidence: confianza real entre 0 y 1 en esa clasificación.
+
 Devuelve:
 - is_pothole: decisión binaria.
 - confidence: confianza real entre 0 y 1. Sé conservador; usa menos de 0.85 cuando dudes.
 - reason: una frase breve en español.
-- severity: solo si es un bache visible, de 1 a 4."""
+- severity: solo si es un bache visible, de 1 a 4.
+- source, is_authentic y authenticity_confidence según lo anterior."""
 
 
 def _image_data_uri(report: Report) -> str:
@@ -121,8 +160,23 @@ def verify_report_photo(report: Report) -> PotholeAssessment:
 
 def apply_ai_assessment(report: Report, assessment: PotholeAssessment) -> None:
     confidence = max(0.0, min(1.0, float(assessment.confidence)))
+    authenticity_confidence = max(
+        0.0, min(1.0, float(assessment.authenticity_confidence))
+    )
+    suspicious_source = assessment.source in {
+        PhotoSource.STOCK,
+        PhotoSource.GENERATED,
+        PhotoSource.SCREENSHOT,
+    }
 
-    if assessment.is_pothole and confidence >= settings.AI_CONFIRM_THRESHOLD:
+    if suspicious_source or not assessment.is_authentic:
+        if authenticity_confidence >= settings.AI_AUTHENTICITY_THRESHOLD:
+            moderation = Report.Moderation.REJECTED
+            verdict = Report.AIVerdict.NOT_AUTHENTIC
+        else:
+            moderation = Report.Moderation.PENDING
+            verdict = Report.AIVerdict.UNCLEAR
+    elif assessment.is_pothole and confidence >= settings.AI_CONFIRM_THRESHOLD:
         moderation = Report.Moderation.CONFIRMED
         verdict = Report.AIVerdict.POTHOLE
     elif not assessment.is_pothole and confidence >= settings.AI_REJECT_THRESHOLD:
@@ -135,7 +189,9 @@ def apply_ai_assessment(report: Report, assessment: PotholeAssessment) -> None:
     report.moderation = moderation
     report.ai_verdict = verdict
     report.ai_confidence = confidence
-    report.ai_reason = assessment.reason[:400]
+    report.ai_reason = (
+        f"{assessment.reason} Fuente: {assessment.source.value}."
+    )[:400]
     report.ai_model = settings.GEMINI_VISION_MODEL
     report.ai_checked_at = timezone.now()
     report.save(
@@ -149,6 +205,11 @@ def apply_ai_assessment(report: Report, assessment: PotholeAssessment) -> None:
         ]
     )
     invalidate_geojson_cache()
+    if moderation == Report.Moderation.PENDING:
+        notify_manual_moderation(
+            report,
+            f"La IA no está segura (confianza {confidence:.2f}).",
+        )
 
 
 def mark_ai_error(report: Report, exc: Exception) -> None:
@@ -157,3 +218,7 @@ def mark_ai_error(report: Report, exc: Exception) -> None:
     report.ai_model = settings.GEMINI_VISION_MODEL
     report.ai_checked_at = timezone.now()
     report.save(update_fields=["ai_verdict", "ai_reason", "ai_model", "ai_checked_at"])
+    notify_manual_moderation(
+        report,
+        f"Falló el análisis de IA ({type(exc).__name__}).",
+    )

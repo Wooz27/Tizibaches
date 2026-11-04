@@ -22,6 +22,7 @@ class ReportRepository {
           'latitude': draft.latitude.toStringAsFixed(6),
           'longitude': draft.longitude.toStringAsFixed(6),
           'severity': draft.severity.toString(),
+          'name': draft.name.trim(),
           'description': draft.description.trim(),
         },
       );

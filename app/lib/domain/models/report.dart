@@ -50,6 +50,7 @@ class ReportDraft {
     required this.severity,
     required this.photoBytes,
     required this.photoName,
+    this.name = '',
     this.description = '',
     this.approximateLocation = false,
   });
@@ -59,6 +60,7 @@ class ReportDraft {
   final int severity;
   final Uint8List photoBytes;
   final String photoName;
+  final String name;
   final String description;
   final bool approximateLocation;
 }

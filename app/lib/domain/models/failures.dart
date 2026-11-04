@@ -13,5 +13,5 @@ class AppFailure implements Exception {
 
 class AuthRequiredFailure extends AppFailure {
   const AuthRequiredFailure()
-    : super('Necesitás una cuenta para hacer esta acción.', statusCode: 401);
+    : super('Necesitas una cuenta para hacer esta acción.', statusCode: 401);
 }

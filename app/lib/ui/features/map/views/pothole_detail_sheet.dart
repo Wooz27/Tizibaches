@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../domain/models/pothole.dart';
 import '../../../../domain/models/pothole_status.dart';
+import '../../../core/widgets/photo_viewer_screen.dart';
 import '../../../core/widgets/pothole_photo.dart';
 import '../../../core/widgets/status_widgets.dart';
 
@@ -65,26 +66,74 @@ class PotholeDetailSheet extends StatelessWidget {
               const SizedBox(height: 12),
               Stack(
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(14),
-                    ),
-                    child: SizedBox(
-                      height: 222,
-                      width: double.infinity,
-                      child: PotholePhoto(
-                        photoUrl: pothole.photoUrl,
-                        darkPlaceholder: true,
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: pothole.photoUrl == null
+                        ? null
+                        : () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => PhotoViewerScreen(
+                                photoUrl: pothole.photoUrl!,
+                                title: pothole.displayName,
+                              ),
+                            ),
+                          ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(14),
+                      ),
+                      child: SizedBox(
+                        height: 222,
+                        width: double.infinity,
+                        child: PotholePhoto(
+                          photoUrl: pothole.photoUrl,
+                          darkPlaceholder: true,
+                        ),
                       ),
                     ),
                   ),
+                  if (pothole.photoUrl != null)
+                    Positioned(
+                      right: 12,
+                      bottom: 10,
+                      child: IgnorePointer(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 5,
+                          ),
+                          color: AppColors.ink.withValues(alpha: 0.72),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                LucideIcons.maximize2,
+                                size: 13,
+                                color: AppColors.label,
+                              ),
+                              SizedBox(width: 5),
+                              Text(
+                                'Ampliar',
+                                style: TextStyle(
+                                  color: AppColors.label,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     top: 12,
                     left: 14,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      color: AppColors.label,
-                      child: StatusBadge(status: pothole.status),
+                    child: IgnorePointer(
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        color: AppColors.label,
+                        child: StatusBadge(status: pothole.status),
+                      ),
                     ),
                   ),
                   Positioned(
@@ -115,10 +164,22 @@ class PotholeDetailSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      pothole.displayAddress,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
+                    if (pothole.name.trim().isNotEmpty) ...[
+                      Text(
+                        pothole.name.trim(),
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        pothole.displayAddress,
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: AppColors.inkSoft),
+                      ),
+                    ] else
+                      Text(
+                        pothole.displayAddress,
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
                     const SizedBox(height: 9),
                     Row(
                       children: [
@@ -172,6 +233,37 @@ class PotholeDetailSheet extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (pothole.note.trim().isNotEmpty) ...[
+                      const SizedBox(height: 18),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.paper,
+                          border: Border.all(color: AppColors.line),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'NOTA DEL REPORTANTE',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: AppColors.muted,
+                                    letterSpacing: 0.8,
+                                  ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              pothole.note.trim(),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(height: 1.45),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 18),
                     Text(
                       pothole.status == PotholeStatus.fixed

@@ -22,7 +22,7 @@ class PotholeListCard extends StatelessWidget {
     final date = pothole.lastReportedAt;
     return Semantics(
       button: true,
-      label: 'Abrir expediente de ${pothole.displayAddress}',
+      label: 'Abrir expediente de ${pothole.displayName}',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
@@ -55,13 +55,30 @@ class PotholeListCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          pothole.displayAddress,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontSize: 14, height: 1.2),
-                        ),
+                        if (pothole.name.trim().isNotEmpty) ...[
+                          Text(
+                            pothole.name.trim(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontSize: 14, height: 1.2),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            pothole.displayAddress,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppColors.inkSoft),
+                          ),
+                        ] else
+                          Text(
+                            pothole.displayAddress,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontSize: 14, height: 1.2),
+                          ),
                         const SizedBox(height: 7),
                         Row(
                           children: [

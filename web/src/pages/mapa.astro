@@ -3,7 +3,7 @@ import PotholeExplorer from "@/components/map/PotholeExplorer";
 import SiteHeader from "@/components/site/SiteHeader.astro";
 import BaseLayout from "@/layouts/main.astro";
 import { getPotholes } from "@/lib/api";
-import { formatNumber } from "@/lib/format";
+import { pluralize } from "@/lib/format";
 
 const { features, error } = await getPotholes();
 ---
@@ -23,7 +23,7 @@ const { features, error } = await getPotholes();
         </h1>
       </div>
       <div class="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-        <span>{formatNumber(features.length)} expedientes</span>
+        <span>{pluralize(features.length, "expediente", "expedientes")}</span>
         <span class="hidden h-3 w-px bg-border sm:block"></span>
         <a href="/" class="underline decoration-border underline-offset-4 transition-colors hover:text-ink">
           Volver a la portada

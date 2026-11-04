@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from urllib.parse import urlencode
 
 from django.conf import settings
-from django.db.models import Exists, OuterRef, Subquery
+from django.db.models import Count, Exists, OuterRef, Q, Subquery
 from django.http import HttpResponseNotModified
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -26,7 +26,12 @@ from apps.reports.serializers import (
     ReportCreateSerializer,
     ReportReadSerializer,
 )
-from apps.reports.services import create_report_with_dedupe
+from apps.reports.services import (
+    DuplicatePhoto,
+    DuplicateReport,
+    create_report_with_dedupe,
+)
+from apps.reports.throttles import ReportCreateThrottle
 
 
 class ReportViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -34,6 +39,11 @@ class ReportViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     permission_classes = [IsAuthenticated]
     serializer_class = ReportCreateSerializer
+
+    def get_throttles(self):
+        if self.action == "create":
+            return [ReportCreateThrottle()]
+        return super().get_throttles()
 
     @action(detail=False, methods=["get"])
     def mine(self, request):
@@ -46,13 +56,20 @@ class ReportViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        result = create_report_with_dedupe(
-            reporter=request.user,
-            point=serializer.validated_data["point"],
-            photo=serializer.validated_data["processed_photo"],
-            severity=serializer.validated_data["severity"],
-            description=serializer.validated_data.get("description", ""),
-        )
+        try:
+            result = create_report_with_dedupe(
+                reporter=request.user,
+                point=serializer.validated_data["point"],
+                photo=serializer.validated_data["processed_photo"],
+                severity=serializer.validated_data["severity"],
+                name=serializer.validated_data.get("name", ""),
+                description=serializer.validated_data.get("description", ""),
+            )
+        except (DuplicateReport, DuplicatePhoto) as exc:
+            return Response(
+                {"detail": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         data = ReportReadSerializer(result.report, context={"request": request}).data
         data["created"] = result.created
@@ -79,6 +96,15 @@ class PotholeViewSet(viewsets.ReadOnlyModelViewSet):
             .order_by("-created_at")
             .values("photo")[:1]
         )
+        latest_note = (
+            Report.objects.filter(
+                pothole=OuterRef("pk"),
+                moderation=Report.Moderation.CONFIRMED,
+            )
+            .exclude(description="")
+            .order_by("-created_at")
+            .values("description")[:1]
+        )
         queryset = (
             super()
             .get_queryset()
@@ -87,6 +113,12 @@ class PotholeViewSet(viewsets.ReadOnlyModelViewSet):
             .annotate(
                 has_confirmed_reports=Exists(confirmed_reports),
                 latest_photo=Subquery(latest_photo),
+                latest_note=Subquery(latest_note),
+                confirmed_reporter_count=Count(
+                    "reports__reporter",
+                    distinct=True,
+                    filter=Q(reports__moderation=Report.Moderation.CONFIRMED),
+                ),
             )
         )
 

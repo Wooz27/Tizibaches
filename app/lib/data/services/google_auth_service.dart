@@ -38,7 +38,7 @@ class GoogleAuthService {
       final idToken = account.authentication.idToken;
       if (idToken == null || idToken.isEmpty) {
         throw const AppFailure(
-          'Google no devolvió un token válido. Intentá de nuevo.',
+          'Google no devolvió un token válido. Intenta de nuevo.',
         );
       }
       return idToken;

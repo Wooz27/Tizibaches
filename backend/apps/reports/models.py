@@ -16,6 +16,7 @@ class Pothole(models.Model):
         REJECTED = "rejected", "Rechazado"
 
     location = models.PointField("Ubicación", srid=4326, geography=True)
+    name = models.CharField("Nombre", max_length=80, blank=True)
     status = models.CharField(
         "Estado", max_length=20, choices=Status.choices, default=Status.REPORTED
     )
@@ -48,6 +49,7 @@ class Report(models.Model):
         PENDING = "pending", "Pendiente"
         POTHOLE = "pothole", "Bache"
         NOT_POTHOLE = "not_pothole", "No es un bache"
+        NOT_AUTHENTIC = "not_authentic", "Foto no auténtica"
         UNCLEAR = "unclear", "Poco claro"
         ERROR = "error", "Error"
 
@@ -65,6 +67,14 @@ class Report(models.Model):
     )
     location = models.PointField("Ubicación", srid=4326, geography=True)
     photo = models.ImageField("Foto", upload_to="reports/%Y/%m/")
+    photo_sha256 = models.CharField(
+        "Hash de la foto",
+        max_length=64,
+        unique=True,
+        null=True,
+        blank=True,
+        editable=False,
+    )
     description = models.TextField("Descripción", max_length=500, blank=True)
     severity = models.PositiveSmallIntegerField("Severidad", choices=SEVERITY_CHOICES)
     moderation = models.CharField(

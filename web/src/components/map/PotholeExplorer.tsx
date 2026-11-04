@@ -35,6 +35,7 @@ import {
   coordinatesLabel,
   formatDate,
   formatNumber,
+  pluralize,
   severityLabel,
   statusLabel,
   statusTone,
@@ -54,6 +55,13 @@ type ExplorerProps = {
 };
 
 type TabValue = "list" | "detail";
+
+function foldSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
 
 function fitToFeatures(map: MapLibreMap, features: PotholeFeature[], duration = 0) {
   if (features.length === 0) {
@@ -112,6 +120,7 @@ function PotholeRow({
   onSelect: (feature: PotholeFeature) => void;
 }) {
   const pothole = feature.properties;
+  const named = pothole.name.trim().length > 0;
 
   return (
     <button
@@ -140,8 +149,21 @@ function PotholeRow({
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
-          <span className="line-clamp-2 text-[12px] font-medium leading-4 text-ink">
-            {pothole.address}
+          <span className="min-w-0">
+            {named ? (
+              <>
+                <span className="line-clamp-1 text-[12px] font-medium leading-4 text-ink">
+                  {pothole.name}
+                </span>
+                <span className="line-clamp-1 text-[10px] leading-4 text-muted-foreground">
+                  {pothole.address}
+                </span>
+              </>
+            ) : (
+              <span className="line-clamp-2 text-[12px] font-medium leading-4 text-ink">
+                {pothole.address}
+              </span>
+            )}
           </span>
           <span
             className={cn("status-dot mt-1 size-2 shrink-0 rounded-full", statusTone(pothole.status))}
@@ -150,7 +172,7 @@ function PotholeRow({
         </span>
         <span className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 font-mono text-[9px] uppercase tracking-[0.08em] text-muted-foreground">
           <span>{statusLabel(pothole.status)}</span>
-          <span>{formatNumber(pothole.report_count)} reportes</span>
+          <span>{pluralize(pothole.report_count, "reporte", "reportes")}</span>
           <span>{formatDate(pothole.last_reported_at)}</span>
         </span>
       </span>
@@ -161,6 +183,8 @@ function PotholeRow({
 function PotholeDetail({ feature }: { feature: PotholeFeature }) {
   const pothole = feature.properties;
   const [longitude, latitude] = feature.geometry.coordinates;
+  const named = pothole.name.trim().length > 0;
+  const placeLabel = named ? pothole.name : pothole.address;
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 
   return (
@@ -178,11 +202,11 @@ function PotholeDetail({ feature }: { feature: PotholeFeature }) {
             <button
               type="button"
               className="group relative block w-full overflow-hidden border border-border bg-muted"
-              aria-label={`Ampliar foto del bache en ${pothole.address}`}
+              aria-label={`Ampliar foto del bache en ${placeLabel}`}
             >
               <img
                 src={pothole.photo_url}
-                alt={`Bache en ${pothole.address}`}
+                alt={`Bache en ${placeLabel}`}
                 className="aspect-[4/3] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                 loading="lazy"
                 decoding="async"
@@ -194,16 +218,16 @@ function PotholeDetail({ feature }: { feature: PotholeFeature }) {
             </button>
           </DialogTrigger>
           <DialogContent className="max-w-3xl border-border bg-card p-2 sm:max-w-3xl">
-            <DialogTitle className="sr-only">Foto del bache en {pothole.address}</DialogTitle>
+            <DialogTitle className="sr-only">Foto del bache en {placeLabel}</DialogTitle>
             <img
               src={pothole.photo_url}
-              alt={`Bache en ${pothole.address}`}
+              alt={`Bache en ${placeLabel}`}
               className="max-h-[75svh] w-full object-contain"
               loading="lazy"
               decoding="async"
             />
             <DialogDescription className="px-2 pb-2 text-xs text-muted-foreground">
-              {pothole.address}
+              {placeLabel} · {pothole.address}
             </DialogDescription>
           </DialogContent>
         </Dialog>
@@ -214,13 +238,23 @@ function PotholeDetail({ feature }: { feature: PotholeFeature }) {
       )}
 
       <div>
-        <h3 className="font-heading text-xl leading-tight tracking-[-0.03em]">{pothole.address}</h3>
+        <h3 className="font-heading text-xl leading-tight tracking-[-0.03em]">{placeLabel}</h3>
+        {named && <p className="mt-1 text-xs text-muted-foreground">{pothole.address}</p>}
         <div className="mt-2 flex flex-wrap items-center gap-2 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">
           <SeverityMeter severity={pothole.severity} />
           <span>{severityLabel(pothole.severity)}</span>
-          <span>{formatNumber(pothole.report_count)} reportes</span>
+          <span>{pluralize(pothole.report_count, "reporte", "reportes")}</span>
         </div>
       </div>
+
+      {pothole.note.trim() && (
+        <div className="border border-border bg-muted/50 p-3">
+          <p className="font-mono text-[8px] uppercase tracking-[0.14em] text-muted-foreground">
+            Nota del reportante
+          </p>
+          <p className="mt-1.5 text-xs leading-5 text-ink">{pothole.note}</p>
+        </div>
+      )}
 
       <Separator />
 
@@ -361,17 +395,19 @@ export default function PotholeExplorer({ features, error, full = false }: Explo
   }, [liveFeatures]);
 
   const visibleFeatures = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalizedQuery = foldSearch(query.trim());
     const filtered = liveFeatures.filter((feature) => {
       const matchesStatus =
         statusFilter === "all" || feature.properties.status === statusFilter;
-      const searchable = [
-        feature.properties.address,
-        feature.id,
-        statusLabel(feature.properties.status),
-      ]
-        .join(" ")
-        .toLowerCase();
+      const searchable = foldSearch(
+        [
+          feature.properties.name,
+          feature.properties.address,
+          feature.properties.note,
+          feature.id,
+          statusLabel(feature.properties.status),
+        ].join(" "),
+      );
       return matchesStatus && (!normalizedQuery || searchable.includes(normalizedQuery));
     });
 
@@ -470,7 +506,7 @@ export default function PotholeExplorer({ features, error, full = false }: Explo
       element.dataset.active = String(selectedIdRef.current === feature.id);
       element.setAttribute(
         "aria-label",
-        `${statusLabel(pothole.status)} en ${pothole.address}. Abrir ficha.`,
+        `${statusLabel(pothole.status)} en ${pothole.name.trim() || pothole.address}. Abrir ficha.`,
       );
       element.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -728,7 +764,7 @@ export default function PotholeExplorer({ features, error, full = false }: Explo
                 Expedientes
               </p>
               <p className="mt-1 font-heading text-lg leading-none tracking-[-0.03em]">
-                {formatNumber(visibleFeatures.length)} baches
+                {pluralize(visibleFeatures.length, "bache", "baches")}
               </p>
             </div>
             <Button

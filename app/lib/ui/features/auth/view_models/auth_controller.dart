@@ -51,7 +51,7 @@ class AuthController extends ChangeNotifier {
       if (!failure.canceled) _error = failure.message;
       return false;
     } on Exception {
-      _error = 'No se pudo iniciar sesión. Intentá de nuevo.';
+      _error = 'No se pudo iniciar sesión. Intenta de nuevo.';
       return false;
     } finally {
       _busy = false;

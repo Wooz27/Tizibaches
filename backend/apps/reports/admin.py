@@ -28,6 +28,7 @@ class PotholeAdmin(GISModelAdmin):
     list_display = (
         "id",
         "photo_thumb",
+        "name",
         "address",
         "status",
         "severity",
@@ -35,10 +36,10 @@ class PotholeAdmin(GISModelAdmin):
         "last_reported_at",
     )
     list_filter = ("status", "severity")
-    search_fields = ("address",)
+    search_fields = ("name", "address")
     readonly_fields = ("first_reported_at", "last_reported_at", "latest_photo_preview")
     fieldsets = (
-        ("Ubicación", {"fields": ("location", "address")}),
+        ("Ubicación", {"fields": ("name", "location", "address")}),
         ("Estado", {"fields": ("status", "severity", "report_count", "fixed_at")}),
         ("Fechas", {"fields": ("first_reported_at", "last_reported_at")}),
         ("Foto más reciente", {"fields": ("latest_photo_preview",)}),

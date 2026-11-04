@@ -19,6 +19,30 @@ def media_url(request, path: str | None) -> str | None:
     return request.build_absolute_uri(url) if request else url
 
 
+def confirmed_reporter_count(pothole: Pothole) -> int:
+    if hasattr(pothole, "confirmed_reporter_count"):
+        return pothole.confirmed_reporter_count
+    return (
+        pothole.reports.filter(moderation=Report.Moderation.CONFIRMED)
+        .values("reporter_id")
+        .distinct()
+        .count()
+    )
+
+
+def latest_note_text(pothole: Pothole) -> str:
+    if hasattr(pothole, "latest_note"):
+        return pothole.latest_note or ""
+    return (
+        pothole.reports.filter(moderation=Report.Moderation.CONFIRMED)
+        .exclude(description="")
+        .order_by("-created_at")
+        .values_list("description", flat=True)
+        .first()
+        or ""
+    )
+
+
 def latest_photo_path(pothole: Pothole) -> str | None:
     if hasattr(pothole, "latest_photo"):
         return pothole.latest_photo
@@ -32,6 +56,8 @@ def latest_photo_path(pothole: Pothole) -> str | None:
 
 class PotholeSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
+    report_count = serializers.SerializerMethodField()
+    note = serializers.SerializerMethodField()
     latitude = serializers.SerializerMethodField()
     longitude = serializers.SerializerMethodField()
     photo_url = serializers.SerializerMethodField()
@@ -40,9 +66,11 @@ class PotholeSerializer(serializers.ModelSerializer):
         model = Pothole
         fields = (
             "id",
+            "name",
             "status",
             "severity",
             "report_count",
+            "note",
             "latitude",
             "longitude",
             "address",
@@ -59,6 +87,12 @@ class PotholeSerializer(serializers.ModelSerializer):
             has_pending=getattr(obj, "has_pending_reports", False),
         )
 
+    def get_report_count(self, obj: Pothole) -> int:
+        return confirmed_reporter_count(obj)
+
+    def get_note(self, obj: Pothole) -> str:
+        return latest_note_text(obj)
+
     def get_latitude(self, obj: Pothole) -> float:
         return obj.location.y
 
@@ -71,6 +105,8 @@ class PotholeSerializer(serializers.ModelSerializer):
 
 class PotholeGeoSerializer(GeoFeatureModelSerializer):
     status = serializers.SerializerMethodField()
+    report_count = serializers.SerializerMethodField()
+    note = serializers.SerializerMethodField()
     photo_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -78,9 +114,11 @@ class PotholeGeoSerializer(GeoFeatureModelSerializer):
         geo_field = "location"
         fields = (
             "id",
+            "name",
             "status",
             "severity",
             "report_count",
+            "note",
             "address",
             "first_reported_at",
             "last_reported_at",
@@ -95,6 +133,12 @@ class PotholeGeoSerializer(GeoFeatureModelSerializer):
             has_pending=getattr(obj, "has_pending_reports", False),
         )
 
+    def get_report_count(self, obj: Pothole) -> int:
+        return confirmed_reporter_count(obj)
+
+    def get_note(self, obj: Pothole) -> str:
+        return latest_note_text(obj)
+
     def get_photo_url(self, obj: Pothole) -> str | None:
         return media_url(self.context.get("request"), getattr(obj, "latest_photo", None))
 
@@ -103,6 +147,7 @@ class ReportCreateSerializer(serializers.Serializer):
     latitude = serializers.FloatField(min_value=-90, max_value=90)
     longitude = serializers.FloatField(min_value=-180, max_value=180)
     severity = serializers.ChoiceField(choices=[value for value, _ in SEVERITY_CHOICES])
+    name = serializers.CharField(required=False, allow_blank=True, max_length=80)
     description = serializers.CharField(required=False, allow_blank=True, max_length=500)
     photo = serializers.ImageField()
 

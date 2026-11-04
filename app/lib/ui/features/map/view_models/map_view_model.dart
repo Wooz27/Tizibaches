@@ -5,6 +5,16 @@ import '../../../../domain/models/failures.dart';
 import '../../../../domain/models/pothole.dart';
 import '../../../../domain/models/pothole_status.dart';
 
+String _fold(String value) {
+  const accents = 'áàäâãéèëêíìïîóòöôõúùüûñç';
+  const plain = 'aaaaaeeeeiiiiooooouuuunc';
+  var folded = value.toLowerCase();
+  for (var i = 0; i < accents.length; i++) {
+    folded = folded.replaceAll(accents[i], plain[i]);
+  }
+  return folded;
+}
+
 class MapViewModel extends ChangeNotifier {
   MapViewModel({required PotholeRepository repository})
     : _repository = repository;
@@ -26,13 +36,15 @@ class MapViewModel extends ChangeNotifier {
   List<Pothole> get all => _all;
 
   List<Pothole> get visible {
-    final needle = _query.trim().toLowerCase();
+    final needle = _fold(_query.trim());
     final items = _all.where((pothole) {
       if (_filter != null && pothole.status != _filter) return false;
       if (needle.isEmpty) return true;
-      return pothole.displayAddress.toLowerCase().contains(needle) ||
+      return _fold(pothole.displayAddress).contains(needle) ||
+          _fold(pothole.name).contains(needle) ||
+          _fold(pothole.note).contains(needle) ||
           pothole.id.toString().contains(needle) ||
-          pothole.status.label.toLowerCase().contains(needle);
+          _fold(pothole.status.label).contains(needle);
     }).toList();
 
     items.sort((a, b) {
