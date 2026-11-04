@@ -74,7 +74,7 @@ services:
     volumes:
       - media:/app/media
     depends_on:
-      db:
+      backend:
         condition: service_healthy
 
   web:

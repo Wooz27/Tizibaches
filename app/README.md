@@ -14,6 +14,7 @@ henequén, caliza, cenote, ink y amarillo maize.
 
 ## Levantar contra el backend
 
+
 Desde la raíz del repositorio:
 
 ```bash
