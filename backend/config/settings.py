@@ -116,7 +116,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # Jazzmin resuelve el directorio vendor/bootswatch como recurso estático;
+        # el manifiesto estricto no contiene directorios y provoca 500 en /admin/.
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
