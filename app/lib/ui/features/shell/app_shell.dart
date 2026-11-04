@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../../app_dependencies.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../domain/models/pothole_status.dart';
 import '../../core/widgets/app_dock.dart';
 import '../auth/view_models/auth_controller.dart';
 import '../auth/views/auth_prompt_sheet.dart';
@@ -41,6 +42,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _auth.addListener(_handleAuthChanged);
+    _reports.addListener(_handleReportStatusChanges);
     _applyOverlay(0);
     _map.load();
     if (_auth.isSignedIn) _reports.load();
@@ -71,6 +73,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     _refreshTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _auth.removeListener(_handleAuthChanged);
+    _reports.removeListener(_handleReportStatusChanges);
     super.dispose();
   }
 
@@ -111,6 +114,26 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
       _reports.load();
     } else {
       _reports.clear();
+    }
+  }
+
+  void _handleReportStatusChanges() {
+    final changes = _reports.takeStatusChanges();
+    if (changes.isEmpty || !mounted) return;
+
+    for (final report in changes) {
+      final message = report.status == PotholeStatus.rejected
+          ? 'Tu reporte del bache #${report.potholeId} fue rechazado.'
+          : 'Tu reporte del bache #${report.potholeId} fue marcado como Reportado.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          action: SnackBarAction(
+            label: 'Ver',
+            onPressed: () => _selectSection(1),
+          ),
+        ),
+      );
     }
   }
 

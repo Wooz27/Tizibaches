@@ -10,6 +10,7 @@ class SessionStore {
 
   static const _sessionKey = 'baches.session';
   static const _guestKey = 'baches.guest';
+  static const _reportStatusKey = 'baches.report_status';
 
   final FlutterSecureStorage _storage;
   String? _memorySession;
@@ -49,8 +50,42 @@ class SessionStore {
     _memorySession = null;
     try {
       await _storage.delete(key: _sessionKey);
+      await _storage.delete(key: _reportStatusKey);
     } on Exception {
       // Sin almacenamiento disponible, la sesión en memoria ya quedó limpia.
+    }
+  }
+
+  Future<Map<String, String>> readReportStatuses() async {
+    try {
+      final raw = await _storage.read(key: _reportStatusKey);
+      if (raw == null || raw.isEmpty) return {};
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return {};
+      return decoded.map(
+        (key, value) => MapEntry(key.toString(), value.toString()),
+      );
+    } on Exception {
+      return {};
+    }
+  }
+
+  Future<void> writeReportStatuses(Map<String, String> statuses) async {
+    try {
+      await _storage.write(
+        key: _reportStatusKey,
+        value: jsonEncode(statuses),
+      );
+    } on Exception {
+      // El aviso se pierde, pero la app sigue funcionando.
+    }
+  }
+
+  Future<void> clearReportStatuses() async {
+    try {
+      await _storage.delete(key: _reportStatusKey);
+    } on Exception {
+      // Sin almacenamiento disponible no hay nada que limpiar.
     }
   }
 

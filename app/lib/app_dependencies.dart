@@ -50,7 +50,10 @@ class AppDependencies {
       authRepository: authRepository,
       authController: authController,
       mapViewModel: MapViewModel(repository: potholeRepository),
-      myReportsViewModel: MyReportsViewModel(repository: reportRepository),
+      myReportsViewModel: MyReportsViewModel(
+        repository: reportRepository,
+        store: sessionStore,
+      ),
       reportRepository: reportRepository,
       locationService: LocationService(),
       photoService: PhotoService(),
