@@ -1,6 +1,5 @@
 ---
 import "@/styles/global.css";
-
 interface Props {
   title?: string;
   description?: string;
@@ -11,12 +10,20 @@ const {
   description = "Reporta, consulta y sigue el estado de los baches de Tizimín, Yucatán. Un mapa abierto con datos ciudadanos y fotos reales.",
 } = Astro.props;
 
+const umamiId = import.meta.env.UMAMI_ID
+const umamiUrl = import.meta.env.UMAMI_URL
+
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
 ---
 
 <!doctype html>
 <html lang="es">
   <head>
+    {
+      umamiId && umamiUrl && (
+        <script is:inline defer src={umamiUrl} data-website-id={umamiId}></script>
+      )
+    }
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
