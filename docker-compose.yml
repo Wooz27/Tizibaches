@@ -87,6 +87,11 @@ services:
         PUBLIC_MAP_STYLE_URL: "${PUBLIC_MAP_STYLE_URL:-https://tiles.openfreemap.org/styles/positron}"
         UMAMI_ID: "${UMAMI_ID:-}"
         UMAMI_URL: "${UMAMI_URL:-}"
+        PUBLIC_APK_URL: "${PUBLIC_APK_URL:-}"
+        PUBLIC_APK_VERSION: "${PUBLIC_APK_VERSION:-}"
+        PUBLIC_APK_DATE: "${PUBLIC_APK_DATE:-}"
+        PUBLIC_APK_SIZE: "${PUBLIC_APK_SIZE:-}"
+        PUBLIC_APK_SHA256: "${PUBLIC_APK_SHA256:-}"
     restart: unless-stopped
     environment:
       HOST: 0.0.0.0
@@ -119,6 +124,7 @@ services:
     volumes:
       - ./infra/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - media:/srv/media:ro
+      - "${RELEASES_HOST_PATH:-./releases}:/srv/releases:ro"
     depends_on:
       backend:
         condition: service_healthy

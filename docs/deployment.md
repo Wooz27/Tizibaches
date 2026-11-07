@@ -113,6 +113,30 @@ sube al repositorio. Google OAuth debe registrar el package
 configuración pública se genera con `make app-config`; nunca incluye
 `GOOGLE_SECRET` ni la llave de Gemini.
 
+### Distribución temporal por APK
+
+Mientras Play Store no apruebe la prueba cerrada, el proxy puede servir APKs de
+prueba en `/releases/`. Es temporal y se retira al aprobarse Play.
+
+```bash
+RELEASES_HOST_PATH=/opt/tizibaches/releases
+```
+
+Ese directorio del host se monta read-only en `/srv/releases` dentro de `proxy`.
+nginx lo expone en `location /releases/` con `autoindex off` y
+`X-Robots-Tag: noindex`. Las variables `PUBLIC_APK_*` alimentan la página
+`/descargar`.
+
+Antes de confiar en esto, revisa que el archivo exista y que el listado del
+directorio esté cerrado:
+
+```bash
+curl -I https://<dominio>/releases/<archivo>.apk
+curl -s -o /dev/null -w '%{http_code}\n' https://<dominio>/releases/
+```
+
+El procedimiento completo está en [`docs/distribucion-apk.md`](./distribucion-apk.md).
+
 ## Privacidad
 
 La moderación con IA envía fotos a Google. La política de privacidad debe

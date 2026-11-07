@@ -50,5 +50,11 @@ app/android/*.local.txt
 # Artefactos locales para Play Store
 reales/
 
+# APK servidos por nginx en /releases/
+releases/
+
 # Capturas locales para Play Store
 videos/
+
+# Memoria local del proyecto (nunca se sube)
+*.local.md

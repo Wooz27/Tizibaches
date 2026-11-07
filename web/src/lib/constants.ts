@@ -17,8 +17,10 @@ export const STATUS_META: Record<
     tone: "tone-pending",
   },
   reported: { label: "Reportado", short: "Reportado", tone: "tone-reported" },
-  verified: { label: "Verificado", short: "Verificado", tone: "tone-verified" },
-  scheduled: { label: "Programado", short: "Programado", tone: "tone-scheduled" },
+  // El backend colapsa estos dos estados a "reported" en la API pública.
+  // Se dejan como "Reportado" para no sugerir un aval oficial si alguna vez llegan.
+  verified: { label: "Reportado", short: "Reportado", tone: "tone-reported" },
+  scheduled: { label: "Reportado", short: "Reportado", tone: "tone-reported" },
   in_progress: { label: "En obra", short: "En obra", tone: "tone-in_progress" },
   fixed: { label: "Reparado", short: "Reparado", tone: "tone-fixed" },
   rejected: { label: "Rechazado", short: "Rechazado", tone: "tone-rejected" },

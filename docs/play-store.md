@@ -2,15 +2,41 @@
 
 ## Artefactos
 
-- AAB para Play Store: `app/build/app/outputs/bundle/release/tizibaches-playstore.aab`
-- APK release para instalación directa: `app/build/app/outputs/flutter-apk/tizibaches-release.apk`
+Los nombres reales que produce Gradle son:
+
+- AAB para Play Store: `app/build/app/outputs/bundle/release/app-release.aab`
+- APK release para instalación directa: `app/build/app/outputs/flutter-apk/app-release.apk`
+
+> Documentación anterior mencionaba `tizibaches-playstore.aab` y
+> `tizibaches-release.apk`. Esos nombres **no** los genera Gradle. Si se copia el
+> archivo equivocado se sube un `versionCode` viejo y Play Console lo rechaza.
+
 - Package: `mx.tizimin.baches`
-- `versionCode`: `2`
-- `versionName`: `1.0.0`
+- `versionCode`: `5`
+- `versionName`: `1.1.0`
+
+Comandos:
+
+```bash
+cd app
+flutter build appbundle --release --dart-define-from-file=config/app_config.json
+flutter build apk --release --dart-define-from-file=config/app_config.json
+```
 
 El AAB está firmado con la llave de upload local. El APK release usa la misma
 firma. Antes de cada nueva subida incrementa el `versionCode` en
-`app/pubspec.yaml` (`1.0.0+3`, `1.0.0+4`, etc.).
+`app/pubspec.yaml` (`1.1.0+6`, `1.1.0+7`, etc.).
+
+### Verificar el `versionCode` antes de subir
+
+```bash
+unzip -p reales/<archivo>.aab base/manifest/AndroidManifest.xml > /tmp/m.bin
+mkdir -p /tmp/m && cp /tmp/m.bin /tmp/m/AndroidManifest.xml
+cd /tmp/m && zip -q ../m.apk AndroidManifest.xml
+aapt2 dump xmltree --file AndroidManifest.xml /tmp/m.apk | head -6
+```
+
+Debe mostrar el `versionCode` esperado.
 
 ## Firma
 
@@ -55,7 +81,7 @@ instalada desde Play aunque el APK esté firmado correctamente.
 2. Completa la ficha: nombre **Tízibaches**, idioma español, app gratuita,
    clasificación y formularios obligatorios.
 3. Ve a **Testing > Internal testing**.
-4. Crea una release y sube `tizibaches-playstore.aab`.
+4. Crea una release y sube el AAB. Verifica antes el `versionCode`.
 5. Escribe las notas de la versión y guarda la release.
 6. En **Testers**, crea una lista con los correos de los testers y copia el
    enlace de opt-in.
@@ -71,11 +97,14 @@ Play Console son necesarios en el panel de Google.
 Para una demo sin Play Store:
 
 ```bash
-adb install -r app/build/app/outputs/flutter-apk/tizibaches-release.apk
+adb install -r app/build/app/outputs/flutter-apk/app-release.apk
 ```
 
 El APK directo usa la llave de upload. Para Google Sign-In también debe estar
 registrado su SHA-1 en el cliente Android.
+
+Para entregar el APK a testers mientras Play aprueba la prueba cerrada, ver
+[`docs/distribucion-apk.md`](./distribucion-apk.md).
 
 ## Variables de la app
 

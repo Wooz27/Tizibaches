@@ -10,8 +10,8 @@ const { stats } = Astro.props;
 
 const items = [
   { value: stats.reports, label: "reportes ciudadanos" },
-  { value: stats.open, label: "casos abiertos" },
-  { value: stats.fixed, label: "baches reparados" },
+  { value: stats.open, label: "expedientes abiertos" },
+  { value: stats.fixed, label: "marcados como reparados" },
   { value: stats.total, label: "expedientes en el mapa" },
 ];
 ---
@@ -19,12 +19,12 @@ const items = [
 <section class="bg-paper-deep text-ink" aria-label="Resumen del registro">
   <div class="mx-auto grid max-w-[1440px] gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_1.95fr] lg:items-end lg:px-8 lg:py-16">
     <div>
-      <h2 class="max-w-[14ch] font-heading text-[clamp(2rem,3.4vw,3.4rem)] font-semibold leading-[0.95] tracking-[-0.045em]">
-        El estado del registro.
+      <h2 class="max-w-[16ch] font-heading text-[clamp(2rem,3.4vw,3.4rem)] font-semibold leading-[0.95] tracking-[-0.045em]">
+        Así va el registro.
       </h2>
-      <p class="mt-4 max-w-[34ch] text-[15px] leading-6 text-ink/70">
-        Cada cifra sale del mismo mapa. No hay conteos separados ni reportes que se pierdan entre
-        áreas.
+      <p class="mt-4 max-w-[38ch] text-[15px] leading-6 text-ink/70">
+        Cada cifra sale de los reportes de vecinos. Puedes abrir cualquiera en el mapa y ver la
+        foto, la calle y el estado.
       </p>
       <p class="mt-6 text-[13px] text-ink/55">Actualizado el {formatDate(stats.lastReport)}</p>
     </div>
