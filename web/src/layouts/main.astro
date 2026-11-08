@@ -3,13 +3,11 @@ import "@/styles/global.css";
 interface Props {
   title?: string;
   description?: string;
-  noindex?: boolean;
 }
 
 const {
   title = "Tízibaches · Mapa público de baches",
   description = "Reporta, consulta y sigue el estado de los baches de Tizimín, Yucatán. Un mapa abierto con datos ciudadanos y fotos reales.",
-  noindex = false,
 } = Astro.props;
 
 const umamiId = import.meta.env.UMAMI_ID
@@ -28,7 +26,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
     }
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />

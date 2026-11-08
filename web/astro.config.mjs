@@ -15,5 +15,9 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    // MapLibre se empaqueta en el cliente; el SSR no debe resolver su entrada CJS.
+    ssr: {
+      noExternal: ["maplibre-gl"],
+    },
   },
 });

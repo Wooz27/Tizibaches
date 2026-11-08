@@ -8,8 +8,10 @@ import {
   Search,
   X,
 } from "lucide-react";
+import { setWorkerUrl } from "maplibre-gl";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -42,6 +44,10 @@ import {
 } from "@/lib/format";
 import type { PotholeFeature, PotholeStatus, SortKey, StatusFilter } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+// MapLibre 6 es ESM-only y ya no resuelve su worker solo. Vite lo empaqueta
+// como archivo aparte y aqui le pasamos la URL resultante.
+setWorkerUrl(maplibreWorkerUrl);
 
 const MAP_STYLE =
   import.meta.env.PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/positron";
@@ -317,7 +323,9 @@ function PotholeDetail({ feature }: { feature: PotholeFeature }) {
 }
 
 export default function PotholeExplorer({ features, error, full = false }: ExplorerProps) {
-  const [liveFeatures, setLiveFeatures] = useState(features);
+  const [polledFeatures, setPolledFeatures] = useState<PotholeFeature[] | null>(null);
+  // Los datos del polling mandan; si todavía no llegó ninguno, se usan los del SSR.
+  const liveFeatures = polledFeatures ?? features;
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("recent");
@@ -334,10 +342,6 @@ export default function PotholeExplorer({ features, error, full = false }: Explo
   const markersRef = useRef<Marker[]>([]);
   const markerElementsRef = useRef(new Map<number, HTMLButtonElement>());
   const selectedIdRef = useRef<number | null>(selectedId);
-
-  useEffect(() => {
-    setLiveFeatures(features);
-  }, [features]);
 
   useEffect(() => {
     let stopped = false;
@@ -360,7 +364,7 @@ export default function PotholeExplorer({ features, error, full = false }: Explo
       try {
         const result = await getPotholesPublic(etag);
         if (!result.notModified) {
-          setLiveFeatures(result.features);
+          setPolledFeatures(result.features);
           etag = result.etag;
         }
       } catch {
@@ -466,7 +470,8 @@ export default function PotholeExplorer({ features, error, full = false }: Explo
           observer = new ResizeObserver(() => map.resize());
           observer.observe(mapContainerRef.current);
         }
-      } catch {
+      } catch (error) {
+        console.error("No se pudo iniciar el mapa", error);
         if (!cancelled) setMapError("No se pudo iniciar el mapa interactivo.");
       }
     }

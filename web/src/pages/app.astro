@@ -6,9 +6,6 @@ import { buttonVariants } from "@/components/ui/button";
 import BaseLayout from "@/layouts/main.astro";
 import { cn } from "@/lib/utils";
 
-const apkUrl = import.meta.env.PUBLIC_APK_URL || "";
-const hasApk = apkUrl.trim().length > 0;
-
 const capabilities = [
   {
     title: "Entra con Google",
@@ -27,7 +24,7 @@ const capabilities = [
 
 <BaseLayout
   title="La app para Android · Tízibaches"
-  description="App ciudadana para reportar baches en Tizimín: Android, acceso con Google, foto, ubicación y seguimiento. Versión de prueba disponible."
+  description="App ciudadana para reportar baches en Tizimín: Android, acceso con Google, foto, ubicación y seguimiento."
 >
   <SiteHeader />
   <main id="contenido" class="pt-24">
@@ -43,33 +40,14 @@ const capabilities = [
           </h1>
           <p class="mt-6 max-w-[52ch] text-[16px] leading-7 text-ink-soft">
             La app ciudadana está en Flutter, solo para Android. Permite entrar con Google, tomar
-            una foto en la calle y enviar la ubicación exacta del bache. Mientras Google Play
-            termina de aprobarla, hay una versión de prueba para instalar de forma manual.
+            una foto en la calle y enviar la ubicación exacta del bache.
           </p>
           <div class="mt-8 flex flex-wrap items-center gap-4">
-            {
-              hasApk && (
-                <a
-                  href="/descargar"
-                  class={cn(
-                    buttonVariants({ size: "lg" }),
-                    "h-12 rounded-none bg-maize px-5 text-ink hover:bg-ink hover:text-label",
-                  )}
-                >
-                  Descargar la versión de prueba
-                  <span aria-hidden="true" class="ml-1">
-                    ↓
-                  </span>
-                </a>
-              )
-            }
             <a
               href="/mapa"
               class={cn(
-                buttonVariants({ size: "lg", variant: hasApk ? "outline" : "default" }),
-                hasApk
-                  ? "h-12 rounded-none border-ink/30 bg-transparent px-5 text-ink hover:bg-ink hover:text-label"
-                  : "h-12 rounded-none bg-maize px-5 text-ink hover:bg-ink hover:text-label",
+                buttonVariants({ size: "lg" }),
+                "h-12 rounded-none bg-maize px-5 text-ink hover:bg-ink hover:text-label",
               )}
             >
               Ver el mapa abierto

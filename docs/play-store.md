@@ -103,9 +103,6 @@ adb install -r app/build/app/outputs/flutter-apk/app-release.apk
 El APK directo usa la llave de upload. Para Google Sign-In también debe estar
 registrado su SHA-1 en el cliente Android.
 
-Para entregar el APK a testers mientras Play aprueba la prueba cerrada, ver
-[`docs/distribucion-apk.md`](./distribucion-apk.md).
-
 ## Variables de la app
 
 La configuración pública usada por este build apunta a:
