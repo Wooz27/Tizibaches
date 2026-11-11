@@ -37,5 +37,10 @@ COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 
+# La imagen node ya trae el usuario "node" (uid 1000). Se usa para que un
+# fallo en el SSR no se ejecute con privilegios de root.
+RUN chown -R node:node /app
+USER node
+
 EXPOSE 4321
 CMD ["node", "dist/server/entry.mjs"]

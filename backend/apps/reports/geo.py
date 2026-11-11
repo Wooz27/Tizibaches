@@ -31,6 +31,12 @@ def bbox_from_query(value: str) -> Polygon:
     if min_lon >= max_lon or min_lat >= max_lat:
         raise ValueError("Los valores mínimos de bbox deben ser menores que los máximos.")
 
+    if not (-180 <= min_lon <= 180 and -180 <= max_lon <= 180):
+        raise ValueError("La longitud debe estar entre -180 y 180.")
+
+    if not (-90 <= min_lat <= 90 and -90 <= max_lat <= 90):
+        raise ValueError("La latitud debe estar entre -90 y 90.")
+
     polygon = Polygon.from_bbox((min_lon, min_lat, max_lon, max_lat))
     polygon.srid = 4326
     return polygon

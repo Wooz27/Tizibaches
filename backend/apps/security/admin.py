@@ -18,6 +18,16 @@ class IssuedTokenAdmin(admin.ModelAdmin):
     list_select_related = ("user",)
     search_fields = ("user__email", "jti")
     list_per_page = 50
+    # El campo token guarda el JWT completo. Mostrarlo permitiría a cualquiera
+    # con permiso de solo lectura suplantar al usuario durante 30 días.
+    exclude = ("token",)
+    readonly_fields = ("jti", "user", "created_at", "expires_at")
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
 
     def has_add_permission(self, request):
         return False
@@ -47,6 +57,13 @@ class BlockedTokenAdmin(admin.ModelAdmin):
     list_display = ("token_emitido", "bloqueado")
     list_select_related = ("token", "token__user")
     list_per_page = 50
+    exclude = ("token",)
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
 
     def has_add_permission(self, request):
         return False

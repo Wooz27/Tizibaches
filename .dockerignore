@@ -4,6 +4,9 @@
 .vscode
 **/__pycache__
 **/*.py[cod]
+# Se listan explícitamente porque Podman/Buildah no interpreta "**".
+.venv
+backend/.venv
 **/.venv
 **/.pytest_cache
 **/.ruff_cache

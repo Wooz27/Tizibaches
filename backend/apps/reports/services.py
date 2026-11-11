@@ -61,7 +61,6 @@ def find_nearby_open_pothole(point: Point) -> Pothole | None:
     )
 
 
-@transaction.atomic
 def create_report_with_dedupe(
     *,
     reporter,
@@ -71,50 +70,56 @@ def create_report_with_dedupe(
     name: str = "",
     description: str = "",
 ) -> ReportCreationResult:
-    # Asocia el reporte a un bache cercano o crea uno nuevo.
-    nearby = find_nearby_open_pothole(point)
-    if nearby is not None and _recent_duplicate_report(reporter, nearby):
-        raise DuplicateReport(
-            "Ya reportaste este bache en las últimas "
-            f"{settings.REPORT_DUPLICATE_WINDOW_HOURS} horas."
+    # La geocodificación es una llamada HTTP. Se resuelve antes de abrir la
+    # transacción para no mantener locks ni una conexión ocupada durante la
+    # espera (hasta 6 s) y para que una caída de Nominatim no bloquee la escritura.
+    address = reverse_geocode(point) or f"{settings.CITY_NAME}, Yucatán"
+
+    with transaction.atomic():
+        # Asocia el reporte a un bache cercano o crea uno nuevo.
+        nearby = find_nearby_open_pothole(point)
+        if nearby is not None and _recent_duplicate_report(reporter, nearby):
+            raise DuplicateReport(
+                "Ya reportaste este bache en las últimas "
+                f"{settings.REPORT_DUPLICATE_WINDOW_HOURS} horas."
+            )
+
+        photo_hash = _photo_sha256(photo)
+        if Report.objects.filter(photo_sha256=photo_hash).exists():
+            raise DuplicatePhoto("Esta foto ya fue usada en otro reporte.")
+
+        created = nearby is None
+        pothole = nearby or Pothole.objects.create(
+            location=point,
+            severity=severity,
+            name=name.strip(),
+            address=address,
         )
 
-    photo_hash = _photo_sha256(photo)
-    if Report.objects.filter(photo_sha256=photo_hash).exists():
-        raise DuplicatePhoto("Esta foto ya fue usada en otro reporte.")
+        if not pothole.address:
+            Pothole.objects.filter(pk=pothole.pk).update(address=address)
+            pothole.address = address
 
-    created = nearby is None
-    pothole = nearby or Pothole.objects.create(
-        location=point,
-        severity=severity,
-        name=name.strip(),
-    )
+        report = Report(
+            reporter=reporter,
+            pothole=pothole,
+            location=point,
+            severity=severity,
+            description=description,
+            photo_sha256=photo_hash,
+        )
+        report.photo.save(photo.name, photo, save=False)
+        try:
+            with transaction.atomic():
+                report.save()
+        except IntegrityError as exc:
+            raise DuplicatePhoto("Esta foto ya fue usada en otro reporte.") from exc
 
-    if not pothole.address:
-        address = reverse_geocode(point) or f"{settings.CITY_NAME}, Yucatán"
-        Pothole.objects.filter(pk=pothole.pk).update(address=address)
-        pothole.address = address
-
-    report = Report(
-        reporter=reporter,
-        pothole=pothole,
-        location=point,
-        severity=severity,
-        description=description,
-        photo_sha256=photo_hash,
-    )
-    report.photo.save(photo.name, photo, save=False)
-    try:
-        with transaction.atomic():
-            report.save()
-    except IntegrityError as exc:
-        raise DuplicatePhoto("Esta foto ya fue usada en otro reporte.") from exc
-
-    Pothole.objects.filter(pk=pothole.pk).update(
-        report_count=F("report_count") + 1,
-        last_reported_at=timezone.now(),
-    )
-    transaction.on_commit(invalidate_geojson_cache)
+        Pothole.objects.filter(pk=pothole.pk).update(
+            report_count=F("report_count") + 1,
+            last_reported_at=timezone.now(),
+        )
+        transaction.on_commit(invalidate_geojson_cache)
 
     return ReportCreationResult(
         report=report,

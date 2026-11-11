@@ -10,6 +10,9 @@ OPEN_STATUSES = ("reported", "verified", "scheduled", "in_progress")
 
 MAX_PHOTO_BYTES = 8 * 1024 * 1024
 MAX_PHOTO_SIDE = 1600
+# 40 M de píxeles cubre cualquier foto de celular y corta las bombas de
+# descompresión antes de que reserven cientos de MB.
+MAX_PHOTO_PIXELS = 40_000_000
 ALLOWED_PHOTO_FORMATS = {"JPEG", "PNG", "WEBP"}
 
 MAX_GEOJSON_FEATURES = 5000

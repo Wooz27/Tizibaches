@@ -66,7 +66,12 @@ class AuthRepository {
         '/api/auth/refresh/',
         body: {'refresh': current.refresh},
       );
-      final updated = current.copyWith(access: json['access'] as String?);
+      // El backend rota y bloquea el refresh anterior. Si no se guarda el
+      // nuevo, la siguiente renovación falla y se cierra la sesión.
+      final updated = current.copyWith(
+        access: json['access'] as String?,
+        refresh: json['refresh'] as String?,
+      );
       _session = updated;
       await _store.write(updated);
       return updated;

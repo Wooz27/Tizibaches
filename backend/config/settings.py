@@ -21,6 +21,22 @@ DEBUG = env("DJANGO_DEBUG")
 SECRET_KEY = env("DJANGO_SECRET_KEY", default=None)
 if not SECRET_KEY:
     raise ImproperlyConfigured("DJANGO_SECRET_KEY es obligatorio.")
+# La SECRET_KEY firma los JWT y los tokens de sesión. Se exige un mínimo real
+# (32) para no romper despliegues existentes y se advierte por debajo de 50,
+# que es lo recomendado. Generar con:
+#   python -c "import secrets; print(secrets.token_urlsafe(64))"
+if len(SECRET_KEY) < 32:
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY debe tener al menos 32 caracteres."
+    )
+if len(SECRET_KEY) < 50:
+    import warnings
+
+    warnings.warn(
+        "DJANGO_SECRET_KEY tiene menos de 50 caracteres; se recomienda rotarla.",
+        RuntimeWarning,
+        stacklevel=2,
+    )
 
 DOMAIN = env("DOMAIN", default="localhost").strip() or "localhost"
 
@@ -169,6 +185,44 @@ SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=not DEBUG)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SESSION_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = "DENY"
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# Sin esto, con DEBUG=False los 500 y los eventos de seguridad no se registran
+# en ninguna parte.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] {levelname} {name}: {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.security": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "apps": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -177,8 +231,11 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticatedOrReadOnly"],
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "DEFAULT_PAGINATION_CLASS": "config.pagination.BoundedLimitOffsetPagination",
     "PAGE_SIZE": 100,
+    # Un solo proxy de confianza (nginx). Sin esto DRF usa el header
+    # X-Forwarded-For completo como identidad y los límites se pueden saltar.
+    "NUM_PROXIES": 1,
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",

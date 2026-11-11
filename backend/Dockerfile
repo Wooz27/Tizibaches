@@ -14,7 +14,11 @@ RUN apt-get update \
         libgeos-dev \
         ca-certificates \
         curl \
+        gosu \
     && rm -rf /var/lib/apt/lists/*
+
+# Usuario sin privilegios para gunicorn y el worker.
+RUN groupadd --system app && useradd --system --gid app --home /app app
 
 COPY --from=ghcr.io/astral-sh/uv:0.8.15 /uv /uvx /bin/
 
@@ -22,11 +26,15 @@ WORKDIR /app
 
 # El pyproject apunta a ../README.md; el contexto de build es la raíz del repo.
 COPY README.md /README.md
-COPY backend/pyproject.toml backend/uv.lock ./
-RUN uv sync --frozen --no-dev
-
 COPY backend/ /app/
-RUN chmod +x /app/entrypoint.sh
+
+# Se reinstala el entorno dentro de la imagen. El .venv local no debe viajar:
+# su Python apunta al host y deja el contenedor sin dependencias.
+RUN rm -rf /app/.venv \
+    && uv sync --frozen --no-dev \
+    && chmod +x /app/entrypoint.sh \
+    && mkdir -p /app/media /app/staticfiles \
+    && chown -R app:app /app
 ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 3000

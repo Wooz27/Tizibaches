@@ -63,42 +63,47 @@ class Command(BaseCommand):
                 sleep(max(1, options["sleep"]))
 
     def _process_next(self) -> bool:
+        # La transacción solo sirve para tomar el siguiente pendiente. La
+        # llamada a Gemini (hasta 25 s) y el aviso de Telegram corren fuera de
+        # ella: mantener el lock durante la espera agota el pool de conexiones.
         with transaction.atomic():
-            report = (
+            report_id = (
                 Report.objects.select_for_update(skip_locked=True)
                 .filter(ai_verdict=Report.AIVerdict.PENDING)
-                .select_related("pothole")
                 .order_by("created_at")
+                .values_list("pk", flat=True)
                 .first()
             )
-            if report is None:
-                return False
 
-            self.stdout.write(
-                f"[{strftime('%H:%M:%S')}] [AI] procesando reporte={report.pk} "
-                f"pothole={report.pothole_id}"
-            )
-            try:
-                assessment = verify_report_photo(report)
-            except AIUnavailable:
-                raise
-            except AIAnalysisError as exc:
-                mark_ai_error(report, exc)
-                self.stderr.write(f"[AI] reporte={report.pk} error={exc}")
-                return True
-            except Exception as exc:
-                mark_ai_error(report, exc)
-                self.stderr.write(
-                    f"[AI] reporte={report.pk} error_inesperado={type(exc).__name__}"
-                )
-                return True
+        if report_id is None:
+            return False
 
-            apply_ai_assessment(report, assessment)
-            self.stdout.write(
-                f"[{strftime('%H:%M:%S')}] [AI] reporte={report.pk} "
-                f"pothole={report.pothole_id} es_bache={assessment.is_pothole} "
-                f"confianza={assessment.confidence:.2f} "
-                f"moderacion={report.moderation} "
-                f"veredicto={report.ai_verdict}"
+        report = Report.objects.select_related("pothole").get(pk=report_id)
+        self.stdout.write(
+            f"[{strftime('%H:%M:%S')}] [AI] procesando reporte={report.pk} "
+            f"pothole={report.pothole_id}"
+        )
+        try:
+            assessment = verify_report_photo(report)
+        except AIUnavailable:
+            raise
+        except AIAnalysisError as exc:
+            mark_ai_error(report, exc)
+            self.stderr.write(f"[AI] reporte={report.pk} error={exc}")
+            return True
+        except Exception as exc:
+            mark_ai_error(report, exc)
+            self.stderr.write(
+                f"[AI] reporte={report.pk} error_inesperado={type(exc).__name__}"
             )
             return True
+
+        apply_ai_assessment(report, assessment)
+        self.stdout.write(
+            f"[{strftime('%H:%M:%S')}] [AI] reporte={report.pk} "
+            f"pothole={report.pothole_id} es_bache={assessment.is_pothole} "
+            f"confianza={assessment.confidence:.2f} "
+            f"moderacion={report.moderation} "
+            f"veredicto={report.ai_verdict}"
+        )
+        return True

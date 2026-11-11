@@ -14,7 +14,7 @@ db-stop:
 podman-db:
 	podman volume create baches_pgdata >/dev/null 2>&1 || true
 	podman rm -f baches-db >/dev/null 2>&1 || true
-	podman run -d --name baches-db --env-file .env -p 5432:5432 \
+	podman run -d --name baches-db --env-file .env -p 127.0.0.1:5432:5432 \
 		-v baches_pgdata:/var/lib/postgresql postgis/postgis:18-3.6
 
 migrate:
